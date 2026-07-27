@@ -1,0 +1,546 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		74C17AFC3017EAF700B7C4E1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 74C17AE23017EAF600B7C4E1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 74C17AE93017EAF600B7C4E1;
+			remoteInfo = ProResQCInspector;
+		};
+		74C17B063017EAF700B7C4E1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 74C17AE23017EAF600B7C4E1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 74C17AE93017EAF600B7C4E1;
+			remoteInfo = ProResQCInspector;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		74C17AEA3017EAF600B7C4E1 /* ProResQCInspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProResQCInspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		74C17AFB3017EAF700B7C4E1 /* ProResQCInspectorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProResQCInspectorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		74C17B053017EAF700B7C4E1 /* ProResQCInspectorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProResQCInspectorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		74C17AEC3017EAF600B7C4E1 /* ProResQCInspector */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ProResQCInspector;
+			sourceTree = "<group>";
+		};
+		74C17AFE3017EAF700B7C4E1 /* ProResQCInspectorTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ProResQCInspectorTests;
+			sourceTree = "<group>";
+		};
+		74C17B083017EAF700B7C4E1 /* ProResQCInspectorUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ProResQCInspectorUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		74C17AE73017EAF600B7C4E1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		74C17AF83017EAF700B7C4E1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		74C17B023017EAF700B7C4E1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		74C17AE13017EAF600B7C4E1 = {
+			isa = PBXGroup;
+			children = (
+				74C17AEC3017EAF600B7C4E1 /* ProResQCInspector */,
+				74C17AFE3017EAF700B7C4E1 /* ProResQCInspectorTests */,
+				74C17B083017EAF700B7C4E1 /* ProResQCInspectorUITests */,
+				74C17AEB3017EAF600B7C4E1 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		74C17AEB3017EAF600B7C4E1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				74C17AEA3017EAF600B7C4E1 /* ProResQCInspector.app */,
+				74C17AFB3017EAF700B7C4E1 /* ProResQCInspectorTests.xctest */,
+				74C17B053017EAF700B7C4E1 /* ProResQCInspectorUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		74C17AE93017EAF600B7C4E1 /* ProResQCInspector */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 74C17B0F3017EAF700B7C4E1 /* Build configuration list for PBXNativeTarget "ProResQCInspector" */;
+			buildPhases = (
+				74C17AE63017EAF600B7C4E1 /* Sources */,
+				74C17AE73017EAF600B7C4E1 /* Frameworks */,
+				74C17AE83017EAF600B7C4E1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				74C17AEC3017EAF600B7C4E1 /* ProResQCInspector */,
+			);
+			name = ProResQCInspector;
+			packageProductDependencies = (
+			);
+			productName = ProResQCInspector;
+			productReference = 74C17AEA3017EAF600B7C4E1 /* ProResQCInspector.app */;
+			productType = "com.apple.product-type.application";
+		};
+		74C17AFA3017EAF700B7C4E1 /* ProResQCInspectorTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 74C17B123017EAF700B7C4E1 /* Build configuration list for PBXNativeTarget "ProResQCInspectorTests" */;
+			buildPhases = (
+				74C17AF73017EAF700B7C4E1 /* Sources */,
+				74C17AF83017EAF700B7C4E1 /* Frameworks */,
+				74C17AF93017EAF700B7C4E1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				74C17AFD3017EAF700B7C4E1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				74C17AFE3017EAF700B7C4E1 /* ProResQCInspectorTests */,
+			);
+			name = ProResQCInspectorTests;
+			packageProductDependencies = (
+			);
+			productName = ProResQCInspectorTests;
+			productReference = 74C17AFB3017EAF700B7C4E1 /* ProResQCInspectorTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		74C17B043017EAF700B7C4E1 /* ProResQCInspectorUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 74C17B153017EAF700B7C4E1 /* Build configuration list for PBXNativeTarget "ProResQCInspectorUITests" */;
+			buildPhases = (
+				74C17B013017EAF700B7C4E1 /* Sources */,
+				74C17B023017EAF700B7C4E1 /* Frameworks */,
+				74C17B033017EAF700B7C4E1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				74C17B073017EAF700B7C4E1 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				74C17B083017EAF700B7C4E1 /* ProResQCInspectorUITests */,
+			);
+			name = ProResQCInspectorUITests;
+			packageProductDependencies = (
+			);
+			productName = ProResQCInspectorUITests;
+			productReference = 74C17B053017EAF700B7C4E1 /* ProResQCInspectorUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		74C17AE23017EAF600B7C4E1 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					74C17AE93017EAF600B7C4E1 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					74C17AFA3017EAF700B7C4E1 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 74C17AE93017EAF600B7C4E1;
+					};
+					74C17B043017EAF700B7C4E1 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 74C17AE93017EAF600B7C4E1;
+					};
+				};
+			};
+			buildConfigurationList = 74C17AE53017EAF600B7C4E1 /* Build configuration list for PBXProject "ProResQCInspector" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 74C17AE13017EAF600B7C4E1;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 74C17AEB3017EAF600B7C4E1 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				74C17AE93017EAF600B7C4E1 /* ProResQCInspector */,
+				74C17AFA3017EAF700B7C4E1 /* ProResQCInspectorTests */,
+				74C17B043017EAF700B7C4E1 /* ProResQCInspectorUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		74C17AE83017EAF600B7C4E1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		74C17AF93017EAF700B7C4E1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		74C17B033017EAF700B7C4E1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		74C17AE63017EAF600B7C4E1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		74C17AF73017EAF700B7C4E1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		74C17B013017EAF700B7C4E1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		74C17AFD3017EAF700B7C4E1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 74C17AE93017EAF600B7C4E1 /* ProResQCInspector */;
+			targetProxy = 74C17AFC3017EAF700B7C4E1 /* PBXContainerItemProxy */;
+		};
+		74C17B073017EAF700B7C4E1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 74C17AE93017EAF600B7C4E1 /* ProResQCInspector */;
+			targetProxy = 74C17B063017EAF700B7C4E1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		74C17B0D3017EAF700B7C4E1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		74C17B0E3017EAF700B7C4E1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		74C17B103017EAF700B7C4E1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ProResQCInspector/ProResQCInspector.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ProResQCInspector/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		74C17B113017EAF700B7C4E1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = ProResQCInspector/ProResQCInspector.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"ProResQCInspector/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		74C17B133017EAF700B7C4E1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspectorTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ProResQCInspector.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ProResQCInspector";
+			};
+			name = Debug;
+		};
+		74C17B143017EAF700B7C4E1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspectorTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ProResQCInspector.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/ProResQCInspector";
+			};
+			name = Release;
+		};
+		74C17B163017EAF700B7C4E1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspectorUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = ProResQCInspector;
+			};
+			name = Debug;
+		};
+		74C17B173017EAF700B7C4E1 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspectorUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = ProResQCInspector;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		74C17AE53017EAF600B7C4E1 /* Build configuration list for PBXProject "ProResQCInspector" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				74C17B0D3017EAF700B7C4E1 /* Debug */,
+				74C17B0E3017EAF700B7C4E1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		74C17B0F3017EAF700B7C4E1 /* Build configuration list for PBXNativeTarget "ProResQCInspector" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				74C17B103017EAF700B7C4E1 /* Debug */,
+				74C17B113017EAF700B7C4E1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		74C17B123017EAF700B7C4E1 /* Build configuration list for PBXNativeTarget "ProResQCInspectorTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				74C17B133017EAF700B7C4E1 /* Debug */,
+				74C17B143017EAF700B7C4E1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		74C17B153017EAF700B7C4E1 /* Build configuration list for PBXNativeTarget "ProResQCInspectorUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				74C17B163017EAF700B7C4E1 /* Debug */,
+				74C17B173017EAF700B7C4E1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 74C17AE23017EAF600B7C4E1 /* Project object */;
+}
