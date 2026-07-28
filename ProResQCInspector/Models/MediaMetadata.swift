@@ -1,7 +1,9 @@
-//
-//  MediaMetadata.swift
-//  ProResQCInspector
-//
-//  Created by gelbda53 on 7/27/26.
-//
+import Foundation
 
+struct MediaMetadata {
+    let codec: String
+    let resolution: String
+    let frameRate: String
+    let duration: String
+    let fileSize: String
+}

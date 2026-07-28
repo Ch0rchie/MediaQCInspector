@@ -2,14 +2,6 @@ import Foundation
 import AVFoundation
 import CoreMedia
 
-struct MediaMetadata {
-    let codec: String
-    let resolution: String
-    let frameRate: String
-    let duration: String
-    let fileSize: String
-}
-
 struct TimeWindow: Hashable {
     var start: Double
     var end: Double
