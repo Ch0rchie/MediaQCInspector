@@ -12,5 +12,6 @@ struct MediaFile: Identifiable, Hashable {
     var duration: String = "—"
     var fileSize: String = "—"
     var region: String = "—"
+    var reviewWindow: String = "—"
     var report: String = ""
 }

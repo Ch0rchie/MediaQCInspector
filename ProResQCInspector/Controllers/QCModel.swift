@@ -13,16 +13,21 @@ final class QCModel: NSObject, ObservableObject {
 
     private let scanner = FFmpegScanner()
 
+    var selectedFile: MediaFile? {
+        guard let selectedFileID else { return nil }
+        return files.first { $0.id == selectedFileID }
+    }
+
     var canCopyReport: Bool {
-        selectedFile()?.report.isEmpty == false || files.contains(where: { !$0.report.isEmpty })
+        selectedFile?.report.isEmpty == false || files.contains(where: { !$0.report.isEmpty })
     }
 
     var selectedReportTitle: String {
-        selectedFile()?.url.lastPathComponent ?? "No File Selected"
+        selectedFile?.url.lastPathComponent ?? "No File Selected"
     }
 
     var selectedReportText: String {
-        guard let file = selectedFile() else {
+        guard let file = selectedFile else {
             return "Select a file to preview its report."
         }
 
@@ -101,6 +106,7 @@ final class QCModel: NSObject, ObservableObject {
             files[index].status = "Checking Decoder"
             files[index].result = "In Progress"
             files[index].region = "—"
+            files[index].reviewWindow = "—"
         }
 
         Task { [scanner] in
@@ -119,7 +125,8 @@ final class QCModel: NSObject, ObservableObject {
                 let duration = validation.duration ?? 0
 
                 var result = "Passed"
-                var region = "—"
+                var primaryRegion = "—"
+                var reviewWindow = "—"
 
                 if !errors.isEmpty {
                     await MainActor.run {
@@ -129,11 +136,13 @@ final class QCModel: NSObject, ObservableObject {
                         self.statusText = "Finding Error Window..."
                     }
 
-                    if duration > 0 {
-                        let windows = scanner.scanForBadWindows(file: url, durationSeconds: duration)
-                        if let first = windows.first, let last = windows.last {
-                            region = "\(scanner.formatTimecode(first.start))–\(scanner.formatTimecode(last.end))"
-                        }
+                    let windows = scanner.scanForBadWindows(file: url, durationSeconds: duration)
+                    if let first = windows.first, let last = windows.last {
+                        let primaryWindow = TimeWindow(start: first.start, end: last.end)
+                        primaryRegion = scanner.formatWindow(primaryWindow)
+                        reviewWindow = scanner.formatWindow(
+                            scanner.editorialReviewWindow(for: primaryWindow, durationSeconds: duration)
+                        )
                     }
 
                     result = "Errors Found"
@@ -145,14 +154,11 @@ final class QCModel: NSObject, ObservableObject {
                     self.files[index].status = "Generating Report"
                     self.files[index].result = "In Progress"
                     self.statusText = "Generating Report..."
-                }
-
-                await MainActor.run {
-                    guard index < self.files.count else { return }
 
                     self.files[index].status = "Complete"
                     self.files[index].result = result
-                    self.files[index].region = region
+                    self.files[index].region = primaryRegion
+                    self.files[index].reviewWindow = reviewWindow
 
                     let updated = self.files[index]
                     self.files[index].report = self.buildReport(for: updated)
@@ -169,7 +175,7 @@ final class QCModel: NSObject, ObservableObject {
     }
 
     func copyReport() {
-        let file = selectedFile() ?? files.first(where: { !$0.report.isEmpty })
+        let file = selectedFile ?? files.first(where: { !$0.report.isEmpty })
         guard let file else {
             statusText = "No report available"
             return
@@ -209,21 +215,18 @@ final class QCModel: NSObject, ObservableObject {
                     self.files[index].fileSize = metadata.fileSize
                     self.files[index].status = "Ready to Analyze"
                     self.files[index].result = "Not Yet Analyzed"
+                    self.files[index].region = "—"
+                    self.files[index].reviewWindow = "—"
                     self.files[index].report = ""
                 } else {
                     self.files[index].status = "Error"
                     self.files[index].result = "Metadata Failed"
+                    self.files[index].region = "—"
+                    self.files[index].reviewWindow = "—"
                     self.files[index].report = self.buildReport(for: self.files[index])
                 }
             }
         }
-    }
-
-    private func selectedFile() -> MediaFile? {
-        if let selectedFileID {
-            return files.first(where: { $0.id == selectedFileID })
-        }
-        return nil
     }
 
     private func buildReport(for file: MediaFile) -> String {
@@ -267,9 +270,9 @@ final class QCModel: NSObject, ObservableObject {
         lines.append("Affected Region")
 
         if file.result == "Errors Found" {
-            lines.append("Primary error window: \(file.region)")
+            lines.append("Primary error region: \(file.region)")
             lines.append("For editorial purposes, I recommend reviewing approximately:")
-            lines.append(file.region)
+            lines.append(file.reviewWindow)
             lines.append("to ensure the entire affected section is replaced or regenerated.")
         } else if file.result == "Passed" {
             lines.append("No discrete error region was identified.")

@@ -6,40 +6,34 @@ struct ContentView: View {
     @StateObject private var model = QCModel()
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 10) {
             HeaderView()
-            DropZoneView(model: model)
-            QueueView(model: model)
+                .padding(.bottom, 4)
 
-            GroupBox("Report Preview") {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text(model.selectedReportTitle)
-                            .font(.headline)
+            ScrollView(.vertical) {
+                VStack(spacing: 18) {
+                    DropZoneView(model: model)
+                        .padding(.top, 8)
 
-                        Spacer()
+                    HStack(alignment: .top, spacing: 14) {
+                        QueueView(model: model)
+                            .frame(width: 610)
 
-                        Button("Copy Report") {
-                            model.copyReport()
-                        }
-                        .disabled(!model.canCopyReport)
+                        DetailPanelView(model: model)
+                            .frame(maxWidth: .infinity)
                     }
-
-                    ScrollView {
-                        Text(model.selectedReportText)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .textSelection(.enabled)
-                            .font(.system(size: 13))
-                    }
-                    .frame(minHeight: 180)
+                    .frame(maxWidth: .infinity)
                 }
-                .padding(.top, 4)
+                .padding(.bottom, 8)
             }
 
             FooterView(model: model)
+                .padding(.top, 2)
         }
-        .padding(24)
-        .frame(minWidth: 1500, minHeight: 860)
+        .padding(.horizontal, 24)
+        .padding(.top, 18)
+        .padding(.bottom, 14)
+        .frame(minWidth: 1500, idealWidth: 1580, minHeight: 760, idealHeight: 800)
     }
 }
 

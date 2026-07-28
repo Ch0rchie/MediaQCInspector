@@ -59,16 +59,17 @@ final class FFmpegScanner: @unchecked Sendable {
             }
         }
 
-        let output = runProcess(
-            executable: ffmpegPath,
-            arguments: [
-                "-v", "error",
-                "-err_detect", "explode",
-                "-i", url.path,
-                "-f", "null",
-                "-"
-            ]
-        )
+        let output = runFFmpeg(arguments: [
+            "-v", "error",
+            "-err_detect", "explode",
+            "-i", url.path,
+            "-f", "null",
+            "-"
+        ])
+
+        print("FFMPEG RAW OUTPUT:")
+        print(output)
+        print("OUTPUT LENGTH:", output.count)
 
         let errors = output
             .split(separator: "\n", omittingEmptySubsequences: true)
@@ -79,59 +80,79 @@ final class FFmpegScanner: @unchecked Sendable {
     }
 
     func scanForBadWindows(file: URL, durationSeconds: Double) -> [TimeWindow] {
-        withSecurityScopedAccess(to: file) {
-            guard durationSeconds > 0 else { return [] }
-
-            let minutes = Int(ceil(durationSeconds / 60.0))
-            var minuteHits: [Int] = []
-
-            for minute in 0..<minutes {
-                let start = formatTimecode(Double(minute) * 60)
-                let end = formatTimecode(min(Double(minute + 1) * 60, durationSeconds))
-                if ffmpegErrorCount(file: file, start: start, end: end) > 0 {
-                    minuteHits.append(minute)
-                }
+        let didStartAccessing = file.startAccessingSecurityScopedResource()
+        defer {
+            if didStartAccessing {
+                file.stopAccessingSecurityScopedResource()
             }
-
-            guard let first = minuteHits.first else { return [] }
-            let last = minuteHits.last ?? first
-
-            var windows: [TimeWindow] = []
-            for minute in first...last {
-                let base = Double(minute) * 60
-                for step in stride(from: 0.0, to: 60.0, by: 5.0) {
-                    let s = base + step
-                    let e = min(base + step + 5.0, durationSeconds)
-                    if ffmpegErrorCount(file: file, start: formatTimecode(s), end: formatTimecode(e)) > 0 {
-                        windows.append(TimeWindow(start: s, end: e))
-                    }
-                }
-            }
-
-            return mergeWindows(windows)
         }
+
+        guard durationSeconds > 0 else { return [] }
+
+        var windows = scanRange(file: file, durationSeconds: durationSeconds, step: 60.0)
+        guard !windows.isEmpty else { return [] }
+
+        windows = refineWindows(file: file, seedWindows: windows, step: 5.0)
+        windows = refineWindows(file: file, seedWindows: windows, step: 1.0)
+        windows = refineWindows(file: file, seedWindows: windows, step: 0.5)
+
+        return mergeWindows(windows)
+    }
+
+    func editorialReviewWindow(for primaryWindow: TimeWindow, durationSeconds: Double) -> TimeWindow {
+        let start = max(0, primaryWindow.start - 1.0)
+        let end = min(durationSeconds, primaryWindow.end + 0.5)
+        return TimeWindow(start: start, end: end)
     }
 
     func formatTimecode(_ seconds: Double) -> String {
-        let total = max(0, seconds)
-        let h = Int(total / 3600)
-        let m = Int((total.truncatingRemainder(dividingBy: 3600)) / 60)
-        let s = total.truncatingRemainder(dividingBy: 60)
-        return String(format: "%02d:%02d:%04.1f", h, m, s)
+        let totalTenths = Int((seconds * 10).rounded())
+        let hours = totalTenths / 36_000
+        let minutes = (totalTenths % 36_000) / 600
+        let remainingTenths = totalTenths % 600
+        let wholeSeconds = remainingTenths / 10
+        let tenths = remainingTenths % 10
+
+        return String(format: "%02d:%02d:%02d.%d", hours, minutes, wholeSeconds, tenths)
     }
 
     func formatWindow(_ window: TimeWindow) -> String {
         "\(formatTimecode(window.start))–\(formatTimecode(window.end))"
     }
 
-    private func withSecurityScopedAccess<T>(to url: URL, _ work: () -> T) -> T {
-        let didStart = url.startAccessingSecurityScopedResource()
-        defer {
-            if didStart {
-                url.stopAccessingSecurityScopedResource()
+    private func scanRange(file: URL, durationSeconds: Double, step: Double) -> [TimeWindow] {
+        var windows: [TimeWindow] = []
+        var cursor = 0.0
+
+        while cursor < durationSeconds {
+            let end = min(cursor + step, durationSeconds)
+            if ffmpegErrorCount(file: file, start: formatTimecode(cursor), end: formatTimecode(end)) > 0 {
+                windows.append(TimeWindow(start: cursor, end: end))
+            }
+            cursor = end
+        }
+
+        return mergeWindows(windows)
+    }
+
+    private func refineWindows(file: URL, seedWindows: [TimeWindow], step: Double) -> [TimeWindow] {
+        guard !seedWindows.isEmpty else { return [] }
+
+        var refined: [TimeWindow] = []
+
+        for window in seedWindows {
+            var cursor = window.start
+
+            while cursor < window.end {
+                let end = min(cursor + step, window.end)
+                if ffmpegErrorCount(file: file, start: formatTimecode(cursor), end: formatTimecode(end)) > 0 {
+                    refined.append(TimeWindow(start: cursor, end: end))
+                }
+                cursor = end
             }
         }
-        return work()
+
+        return mergeWindows(refined)
     }
 
     private func assetDurationSeconds(_ asset: AVURLAsset) async -> Double {
@@ -215,19 +236,46 @@ final class FFmpegScanner: @unchecked Sendable {
         return (attrs?[.size] as? NSNumber)?.int64Value ?? 0
     }
 
+    private func runFFmpeg(arguments: [String]) -> String {
+        let process = Process()
+        let pipe = Pipe()
+
+        process.executableURL = URL(fileURLWithPath: ffmpegPath)
+        process.arguments = arguments
+        process.standardOutput = pipe
+        process.standardError = pipe
+
+        do {
+            try process.run()
+            process.waitUntilExit()
+        } catch {
+            print("Failed to run ffmpeg:")
+            print(error)
+            return ""
+        }
+
+        let data = pipe.fileHandleForReading.readDataToEndOfFile()
+        let output = String(data: data, encoding: .utf8) ?? ""
+
+        if process.terminationStatus != 0 {
+            print("FFmpeg exited with status:", process.terminationStatus)
+            print("Output:")
+            print(output)
+        }
+
+        return output
+    }
+
     private func ffmpegErrorCount(file: URL, start: String, end: String) -> Int {
-        let output = runProcess(
-            executable: ffmpegPath,
-            arguments: [
-                "-v", "error",
-                "-err_detect", "explode",
-                "-ss", start,
-                "-to", end,
-                "-i", file.path,
-                "-f", "null",
-                "-"
-            ]
-        )
+        let output = runFFmpeg(arguments: [
+            "-v", "error",
+            "-err_detect", "explode",
+            "-ss", start,
+            "-to", end,
+            "-i", file.path,
+            "-f", "null",
+            "-"
+        ])
 
         let needles = [
             "invalid frame header",
@@ -245,41 +293,11 @@ final class FFmpegScanner: @unchecked Sendable {
 
         return output
             .lowercased()
-            .split(separator: "\n")
+            .split(separator: "\n", omittingEmptySubsequences: true)
             .filter { line in
-                needles.contains(where: { line.contains($0) }) }
+                needles.contains(where: { line.contains($0) })
+            }
             .count
-    }
-
-    private func runProcess(executable: String, arguments: [String]) -> String {
-        let process = Process()
-        let pipe = Pipe()
-
-        process.executableURL = URL(fileURLWithPath: executable)
-        process.arguments = arguments
-        process.standardOutput = pipe
-        process.standardError = pipe
-
-        do {
-            try process.run()
-            process.waitUntilExit()
-        } catch {
-            print("Failed to run process:", executable)
-            print(error)
-            return ""
-        }
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? ""
-
-        if process.terminationStatus != 0 {
-            print("Process exited with status:", process.terminationStatus)
-            print("Executable:", executable)
-            print("Output:")
-            print(output)
-        }
-
-        return output
     }
 
     private func formatDuration(_ seconds: Double) -> String {
