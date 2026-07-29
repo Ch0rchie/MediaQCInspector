@@ -9,7 +9,6 @@ struct ContentView: View {
                 .padding(.bottom, 18)
 
             DropZoneView(model: model)
-                .frame(height: 130)
 
             HSplitView {
                 QueueView(model: model)

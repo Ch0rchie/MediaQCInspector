@@ -1,5 +1,4 @@
 import SwiftUI
-import AppKit
 
 struct DetailPanelView: View {
     @ObservedObject var model: QCModel
@@ -34,11 +33,12 @@ struct DetailPanelView: View {
                     }
                     .frame(height: 24)
 
+                    ResultBadgeView(result: file.result)
+
                     LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
                         detailField("Analysis Date", model.selectedAnalysisDate)
                         detailField("Analysis Time", model.selectedAnalysisTime)
                         detailField("Status", file.status, color: statusColor(for: file.status))
-                        detailField("Result", file.result, color: resultColor(for: file.result))
                         detailField("Primary Error Region", file.region)
                         detailField("Editorial Review Window", file.reviewWindow)
                     }
@@ -75,7 +75,7 @@ struct DetailPanelView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(NSColor.windowBackgroundColor))
+                .fill(Color(nsColor: .windowBackgroundColor))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -104,26 +104,11 @@ struct DetailPanelView: View {
     private func statusColor(for status: String) -> Color {
         switch status {
         case "Complete":
-            return .green
+            return .secondary
         case "Checking Decoder", "Finding Error Window", "Generating Report":
             return .blue
         case "Error":
             return .orange
-        default:
-            return .secondary
-        }
-    }
-
-    private func resultColor(for result: String) -> Color {
-        switch result {
-        case "Passed":
-            return .green
-        case "Errors Found":
-            return .red
-        case "Metadata Failed":
-            return .orange
-        case "In Progress":
-            return .blue
         default:
             return .secondary
         }

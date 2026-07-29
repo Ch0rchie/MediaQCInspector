@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		74E4A66F30198D500000BC57 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 74E4A66E30198D400000BC57 /* README.md */; };
 		74E4A67130198E1F0000BC57 /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = 74E4A67030198DEE0000BC57 /* CHANGELOG.md */; };
+		74E4A6AA301A8CD80000BC57 /* DESIGN.md in Resources */ = {isa = PBXBuildFile; fileRef = 74E4A6A9301A8CD80000BC57 /* DESIGN.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -34,6 +35,7 @@
 		74C17B053017EAF700B7C4E1 /* ProResQCInspectorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProResQCInspectorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		74E4A66E30198D400000BC57 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		74E4A67030198DEE0000BC57 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
+		74E4A6A9301A8CD80000BC57 /* DESIGN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DESIGN.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -87,6 +89,7 @@
 		74C17AE13017EAF600B7C4E1 = {
 			isa = PBXGroup;
 			children = (
+				74E4A6A9301A8CD80000BC57 /* DESIGN.md */,
 				74E4A67030198DEE0000BC57 /* CHANGELOG.md */,
 				74E4A66E30198D400000BC57 /* README.md */,
 				74F42C0E3019427D0098CB19 /* Design */,
@@ -229,6 +232,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				74E4A67130198E1F0000BC57 /* CHANGELOG.md in Resources */,
+				74E4A6AA301A8CD80000BC57 /* DESIGN.md in Resources */,
 				74E4A66F30198D500000BC57 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

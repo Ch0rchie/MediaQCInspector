@@ -1,3 +1,4 @@
+// FFmpegScanner.swift
 import Foundation
 import AVFoundation
 import CoreMedia
@@ -9,6 +10,9 @@ struct TimeWindow: Hashable {
 
 final class FFmpegScanner: @unchecked Sendable {
     private let ffmpegPath = "/opt/homebrew/bin/ffmpeg"
+    private let lock = NSLock()
+    private var cancelRequested = false
+    private var currentProcess: Process?
 
     private let byteFormatter: ByteCountFormatter = {
         let formatter = ByteCountFormatter()
@@ -16,6 +20,27 @@ final class FFmpegScanner: @unchecked Sendable {
         formatter.countStyle = .file
         return formatter
     }()
+
+    func resetCancellation() {
+        lock.lock()
+        cancelRequested = false
+        lock.unlock()
+    }
+
+    func cancelCurrentScan() {
+        lock.lock()
+        cancelRequested = true
+        let process = currentProcess
+        lock.unlock()
+
+        process?.terminate()
+    }
+
+    private func isCancelled() -> Bool {
+        lock.lock()
+        defer { lock.unlock() }
+        return cancelRequested
+    }
 
     func readMetadata(for url: URL) async -> MediaMetadata? {
         let didStartAccessing = url.startAccessingSecurityScopedResource()
@@ -51,7 +76,12 @@ final class FFmpegScanner: @unchecked Sendable {
         }
     }
 
-    func validateFile(_ url: URL) async -> (errors: [String], duration: Double?) {
+    func validateFile(
+        _ url: URL,
+        progress: @escaping @Sendable (Double) -> Void
+    ) async -> (errors: [String], duration: Double?) {
+        guard !isCancelled() else { return ([], nil) }
+
         let didStartAccessing = url.startAccessingSecurityScopedResource()
         defer {
             if didStartAccessing {
@@ -59,23 +89,35 @@ final class FFmpegScanner: @unchecked Sendable {
             }
         }
 
-        let output = runFFmpeg(arguments: [
-            "-v", "error",
-            "-err_detect", "explode",
-            "-i", url.path,
-            "-f", "null",
-            "-"
-        ])
-
-        let errors = output
-            .split(separator: "\n", omittingEmptySubsequences: true)
-            .map(String.init)
-
         let duration = await assetDurationSeconds(AVURLAsset(url: url))
-        return (errors, duration)
+        guard duration > 0 else {
+            progress(1)
+            return ([], nil)
+        }
+
+        progress(0)
+
+        let step = max(30.0, min(120.0, duration / 15.0))
+        let windows = scanRangeWithSeek(
+            file: url,
+            durationSeconds: duration,
+            step: step,
+            progress: progress
+        )
+
+        if isCancelled() {
+            return ([], duration)
+        }
+
+        progress(1)
+        return windows.isEmpty ? ([], duration) : (["Decode errors detected"], duration)
     }
 
-    func scanForBadWindows(file: URL, durationSeconds: Double) -> [TimeWindow] {
+    func scanForBadWindows(
+        file: URL,
+        durationSeconds: Double,
+        progress: @escaping @Sendable (Double) -> Void
+    ) async -> [TimeWindow] {
         let didStartAccessing = file.startAccessingSecurityScopedResource()
         defer {
             if didStartAccessing {
@@ -83,16 +125,60 @@ final class FFmpegScanner: @unchecked Sendable {
             }
         }
 
-        guard durationSeconds > 0 else { return [] }
+        guard durationSeconds > 0 else {
+            progress(1)
+            return []
+        }
 
-        var windows = scanRangeWithSeek(file: file, durationSeconds: durationSeconds, step: 60.0)
-        guard !windows.isEmpty else { return [] }
+        progress(0)
 
-        windows = refineWindowsWithSeek(file: file, seedWindows: windows, step: 5.0)
-        windows = refineWindowsWithSeek(file: file, seedWindows: windows, step: 1.0)
-        windows = refineWindowsWithSeek(file: file, seedWindows: windows, step: 0.5)
+        var windows = scanRangeWithSeek(
+            file: file,
+            durationSeconds: durationSeconds,
+            step: 60.0,
+            progress: { progress($0 * 0.25) }
+        )
+
+        guard !windows.isEmpty else {
+            progress(1)
+            return []
+        }
+
+        if isCancelled() {
+            return []
+        }
+
+        windows = refineWindowsWithSeek(
+            file: file,
+            seedWindows: windows,
+            step: 5.0,
+            progress: { progress(0.25 + ($0 * 0.25)) }
+        )
+
+        if isCancelled() {
+            return []
+        }
+
+        windows = refineWindowsWithSeek(
+            file: file,
+            seedWindows: windows,
+            step: 1.0,
+            progress: { progress(0.5 + ($0 * 0.25)) }
+        )
+
+        if isCancelled() {
+            return []
+        }
+
+        windows = refineWindowsWithSeek(
+            file: file,
+            seedWindows: windows,
+            step: 0.5,
+            progress: { progress(0.75 + ($0 * 0.25)) }
+        )
 
         let normalized = mergeWindows(windows).map { normalizePrimaryWindow($0) }
+        progress(1)
         return mergeWindows(normalized)
     }
 
@@ -117,34 +203,59 @@ final class FFmpegScanner: @unchecked Sendable {
         "\(formatTimecode(window.start))–\(formatTimecode(window.end))"
     }
 
-    private func scanRangeWithSeek(file: URL, durationSeconds: Double, step: Double) -> [TimeWindow] {
+    private func scanRangeWithSeek(
+        file: URL,
+        durationSeconds: Double,
+        step: Double,
+        progress: @escaping @Sendable (Double) -> Void
+    ) -> [TimeWindow] {
         var windows: [TimeWindow] = []
         var cursor = 0.0
+        let totalSegments = max(1, Int(ceil(durationSeconds / step)))
+        var completedSegments = 0
 
         while cursor < durationSeconds {
+            if isCancelled() { break }
+
             let end = min(cursor + step, durationSeconds)
             if ffmpegErrorCount(file: file, start: formatTimecode(cursor), end: formatTimecode(end)) > 0 {
                 windows.append(TimeWindow(start: cursor, end: end))
             }
+
+            completedSegments += 1
+            progress(Double(completedSegments) / Double(totalSegments))
             cursor = end
         }
 
         return mergeWindows(windows)
     }
 
-    private func refineWindowsWithSeek(file: URL, seedWindows: [TimeWindow], step: Double) -> [TimeWindow] {
+    private func refineWindowsWithSeek(
+        file: URL,
+        seedWindows: [TimeWindow],
+        step: Double,
+        progress: @escaping @Sendable (Double) -> Void
+    ) -> [TimeWindow] {
         guard !seedWindows.isEmpty else { return [] }
 
         var refined: [TimeWindow] = []
+        let totalSegments = max(1, seedWindows.reduce(0) { $0 + max(1, Int(ceil(($1.end - $1.start) / step))) })
+        var completedSegments = 0
 
         for window in seedWindows {
-            var cursor = window.start
+            if isCancelled() { break }
 
+            var cursor = window.start
             while cursor < window.end {
+                if isCancelled() { break }
+
                 let end = min(cursor + step, window.end)
                 if ffmpegErrorCount(file: file, start: formatTimecode(cursor), end: formatTimecode(end)) > 0 {
                     refined.append(TimeWindow(start: cursor, end: end))
                 }
+
+                completedSegments += 1
+                progress(Double(completedSegments) / Double(totalSegments))
                 cursor = end
             }
         }
@@ -233,14 +344,14 @@ final class FFmpegScanner: @unchecked Sendable {
     }
 
     private func fourCCString(from code: FourCharCode) -> String {
-        let bytes: [CChar] = [
-            CChar((code >> 24) & 0xFF),
-            CChar((code >> 16) & 0xFF),
-            CChar((code >> 8) & 0xFF),
-            CChar(code & 0xFF),
-            0
+        let bytes: [UInt8] = [
+            UInt8((code >> 24) & 0xFF),
+            UInt8((code >> 16) & 0xFF),
+            UInt8((code >> 8) & 0xFF),
+            UInt8(code & 0xFF)
         ]
-        return String(cString: bytes)
+
+        return String(bytes: bytes, encoding: .ascii) ?? ""
     }
 
     private func fileSizeBytes(_ url: URL) -> Int64 {
@@ -249,6 +360,8 @@ final class FFmpegScanner: @unchecked Sendable {
     }
 
     private func runFFmpeg(arguments: [String]) -> String {
+        if isCancelled() { return "" }
+
         let process = Process()
         let pipe = Pipe()
 
@@ -256,6 +369,18 @@ final class FFmpegScanner: @unchecked Sendable {
         process.arguments = arguments
         process.standardOutput = pipe
         process.standardError = pipe
+
+        lock.lock()
+        currentProcess = process
+        lock.unlock()
+
+        defer {
+            lock.lock()
+            if currentProcess === process {
+                currentProcess = nil
+            }
+            lock.unlock()
+        }
 
         do {
             try process.run()
@@ -271,6 +396,8 @@ final class FFmpegScanner: @unchecked Sendable {
     }
 
     private func ffmpegErrorCount(file: URL, start: String, end: String) -> Int {
+        if isCancelled() { return 0 }
+
         let output = runFFmpeg(arguments: [
             "-v", "error",
             "-err_detect", "explode",

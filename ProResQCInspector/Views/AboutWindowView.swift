@@ -1,6 +1,14 @@
 import SwiftUI
 
 struct AboutWindowView: View {
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0.0.0"
+    }
+
+    private var buildNumber: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
+    }
+
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "film.stack.fill")
@@ -10,10 +18,10 @@ struct AboutWindowView: View {
             Text("ProRes QC Inspector")
                 .font(.title.bold())
 
-            Text("Version 1.0")
+            Text("Version \(appVersion) (Build \(buildNumber))")
                 .foregroundStyle(.secondary)
 
-            Text("Professional ProRes Validation and QC Analysis")
+            Text("Professional Apple ProRes validation\nand technical reporting for production workflows.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
 
@@ -23,13 +31,6 @@ struct AboutWindowView: View {
                 Text("Created by")
                     .foregroundStyle(.secondary)
                 Text("David Gelb")
-                    .font(.title3.bold())
-            }
-
-            VStack(spacing: 6) {
-                Text("Powered by")
-                    .foregroundStyle(.secondary)
-                Text("FFmpeg")
                     .font(.title3.bold())
             }
 

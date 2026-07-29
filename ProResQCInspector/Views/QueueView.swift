@@ -1,3 +1,4 @@
+// QueueView.swift
 import SwiftUI
 
 struct QueueView: View {
@@ -10,6 +11,10 @@ struct QueueView: View {
                     .font(.headline)
 
                 Spacer()
+
+                Text("\(model.files.count)")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
             }
             .padding(.horizontal, 2)
 
@@ -36,7 +41,7 @@ struct QueueView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color(NSColor.windowBackgroundColor))
+                .fill(Color(nsColor: .windowBackgroundColor))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -62,14 +67,11 @@ struct QueueView: View {
         let isSelected = model.selectedFileID == file.id
 
         return VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Image(systemName: statusSymbol(for: file))
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(statusColor(for: file))
-                    .frame(width: 16)
+            HStack(alignment: .center, spacing: 8) {
+                ResultBadgeView(result: file.result, style: .compact)
 
                 Text(file.url.lastPathComponent)
-                    .font(.subheadline.weight(.semibold))
+                    .font(.body.weight(.semibold))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                     .truncationMode(.middle)
@@ -79,7 +81,7 @@ struct QueueView: View {
             }
 
             LazyVGrid(
-                columns: [GridItem(.adaptive(minimum: 92), spacing: 6)],
+                columns: [GridItem(.adaptive(minimum: 96), spacing: 6)],
                 alignment: .leading,
                 spacing: 6
             ) {
@@ -92,10 +94,10 @@ struct QueueView: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(isSelected ? Color.accentColor.opacity(0.12) : Color.secondary.opacity(0.06))
+        .background(isSelected ? Color.accentColor.opacity(0.10) : Color.secondary.opacity(0.05))
         .overlay(
             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .stroke(isSelected ? Color.accentColor.opacity(0.45) : Color.clear, lineWidth: 1)
+                .stroke(isSelected ? Color.accentColor.opacity(0.40) : Color.clear, lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
@@ -103,65 +105,19 @@ struct QueueView: View {
     private func metricCard(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(label)
-                .font(.caption2)
-                .foregroundStyle(.secondary)
+                .font(.caption2.weight(.semibold))
+                .foregroundStyle(.secondary.opacity(0.9))
 
             Text(value)
-                .font(.caption)
+                .font(.caption.weight(.medium))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
                 .truncationMode(.tail)
         }
         .padding(.horizontal, 8)
-        .padding(.vertical, 6)
+        .padding(.vertical, 5)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.secondary.opacity(0.06))
+        .background(Color.secondary.opacity(0.05))
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-    }
-
-    private func statusSymbol(for file: MediaFile) -> String {
-        switch file.status {
-        case "Ready to Analyze":
-            return "circle.fill"
-        case "Checking Decoder":
-            return "arrow.triangle.2.circlepath"
-        case "Finding Error Window":
-            return "magnifyingglass.circle.fill"
-        case "Generating Report":
-            return "doc.text.magnifyingglass"
-        case "Complete":
-            if file.result == "Passed" {
-                return "checkmark.circle.fill"
-            } else if file.result == "Errors Found" {
-                return "xmark.circle.fill"
-            } else {
-                return "checkmark.circle.fill"
-            }
-        case "Error":
-            return "exclamationmark.triangle.fill"
-        default:
-            return "circle.fill"
-        }
-    }
-
-    private func statusColor(for file: MediaFile) -> Color {
-        switch file.status {
-        case "Ready to Analyze":
-            return .secondary
-        case "Checking Decoder", "Finding Error Window", "Generating Report":
-            return .blue
-        case "Complete":
-            if file.result == "Passed" {
-                return .green
-            } else if file.result == "Errors Found" {
-                return .red
-            } else {
-                return .green
-            }
-        case "Error":
-            return .orange
-        default:
-            return .secondary
-        }
     }
 }
