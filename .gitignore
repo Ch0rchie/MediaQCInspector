@@ -19,9 +19,7 @@ DerivedData/
 # Swift Package Manager
 .build/
 Packages/
-
-# Package resolution (uncomment if you don't want to commit it)
-# Package.resolved
+.swiftpm/
 
 # Playground files
 timeline.xctimeline
@@ -47,6 +45,10 @@ Carthage/Build/
 
 # Logs
 *.log
+*.crash
+
+# Code Coverage
+*.profdata
 
 # Archives
 *.xcarchive
@@ -54,3 +56,6 @@ Carthage/Build/
 # Finder metadata
 .Spotlight-V100
 .Trashes
+
+# Xcode Cloud
+ci_scripts/
