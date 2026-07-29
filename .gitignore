@@ -1,10 +1,56 @@
-# Xcode user-specific files
-**/xcuserdata/
-*.xcuserstate
+###############################################################################
+# ProRes QC Inspector
+# .gitignore
+###############################################################################
 
 # macOS
 .DS_Store
+.AppleDouble
+.LSOverride
 
-# Build products
-DerivedData/
+# Xcode user data
+**/xcuserdata/
+*.xcuserstate
+
+# Xcode build products
 build/
+DerivedData/
+
+# Swift Package Manager
+.build/
+Packages/
+
+# Package resolution (uncomment if you don't want to commit it)
+# Package.resolved
+
+# Playground files
+timeline.xctimeline
+playground.xcworkspace
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# CocoaPods (not currently used)
+Pods/
+
+# Carthage (not currently used)
+Carthage/Build/
+
+# Temporary files
+*.swp
+*.tmp
+*.bak
+*.orig
+
+# Logs
+*.log
+
+# Archives
+*.xcarchive
+
+# Finder metadata
+.Spotlight-V100
+.Trashes
