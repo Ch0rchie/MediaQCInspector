@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct DetailPanelView: View {
     @ObservedObject var model: QCModel
@@ -9,10 +10,11 @@ struct DetailPanelView: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text("Analysis Details")
                     .font(.headline)
+                    .padding(.leading, 2)
 
                 Spacer()
 
@@ -21,61 +23,64 @@ struct DetailPanelView: View {
                 }
                 .disabled(!model.canCopyReport)
             }
-            .padding(.horizontal, 2)
 
+            VStack(alignment: .leading, spacing: 12) {
+                if let file = model.selectedFile {
+                    ScrollView(.horizontal, showsIndicators: true) {
+                        Text(file.url.lastPathComponent)
+                            .font(.headline)
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .frame(height: 24)
+
+                    LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+                        detailField("Analysis Date", model.selectedAnalysisDate)
+                        detailField("Analysis Time", model.selectedAnalysisTime)
+                        detailField("Status", file.status, color: statusColor(for: file.status))
+                        detailField("Result", file.result, color: resultColor(for: file.result))
+                        detailField("Primary Error Region", file.region)
+                        detailField("Editorial Review Window", file.reviewWindow)
+                    }
+
+                    Divider()
+
+                    Text("Report")
+                        .font(.headline)
+
+                    ScrollView {
+                        Text(model.selectedReportText)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .textSelection(.enabled)
+                            .font(.system(size: 13))
+                            .padding(.bottom, 8)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                } else {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("No File Selected")
+                            .font(.headline)
+
+                        Text("Select a file in the table to view analysis details and the generated report.")
+                            .foregroundStyle(.secondary)
+
+                        Spacer(minLength: 0)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .fill(Color(NSColor.windowBackgroundColor))
-                .overlay(
-                    VStack(alignment: .leading, spacing: 12) {
-                        if let file = model.selectedFile {
-                            ScrollView(.horizontal, showsIndicators: true) {
-                                Text(file.url.lastPathComponent)
-                                    .font(.headline)
-                                    .textSelection(.enabled)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                            }
-                            .frame(height: 26)
-
-                            LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
-                                detailField("Status", file.status, color: statusColor(for: file.status))
-                                detailField("Result", file.result, color: resultColor(for: file.result))
-                                detailField("Primary Error Region", file.region)
-                                detailField("Editorial Review Window", file.reviewWindow)
-                            }
-
-                            Divider()
-
-                            Text("Report")
-                                .font(.headline)
-
-                            ScrollView {
-                                Text(model.selectedReportText)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .textSelection(.enabled)
-                                    .font(.system(size: 13))
-                                    .padding(.bottom, 8)
-                            }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-                        } else {
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("No File Selected")
-                                    .font(.headline)
-
-                                Text("Select a file in the table to view analysis details and the generated report.")
-                                    .foregroundStyle(.secondary)
-
-                                Spacer(minLength: 0)
-                            }
-                        }
-                    }
-                    .padding(10)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Color.secondary.opacity(0.18), lineWidth: 1)
-                )
-                .frame(minHeight: 330)
-        }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Color.secondary.opacity(0.18), lineWidth: 1)
+        )
     }
 
     private func detailField(_ label: String, _ value: String, color: Color = .primary) -> some View {

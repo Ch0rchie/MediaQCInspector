@@ -45,6 +45,11 @@
 			path = ProResQCInspectorUITests;
 			sourceTree = "<group>";
 		};
+		74F42C0E3019427D0098CB19 /* Design */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Design;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -75,6 +80,7 @@
 		74C17AE13017EAF600B7C4E1 = {
 			isa = PBXGroup;
 			children = (
+				74F42C0E3019427D0098CB19 /* Design */,
 				74C17AEC3017EAF600B7C4E1 /* ProResQCInspector */,
 				74C17AFE3017EAF700B7C4E1 /* ProResQCInspectorTests */,
 				74C17B083017EAF700B7C4E1 /* ProResQCInspectorUITests */,
@@ -109,6 +115,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				74C17AEC3017EAF600B7C4E1 /* ProResQCInspector */,
+				74F42C0E3019427D0098CB19 /* Design */,
 			);
 			name = ProResQCInspector;
 			packageProductDependencies = (

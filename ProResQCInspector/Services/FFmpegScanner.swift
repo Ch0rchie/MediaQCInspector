@@ -67,10 +67,6 @@ final class FFmpegScanner: @unchecked Sendable {
             "-"
         ])
 
-        print("FFMPEG RAW OUTPUT:")
-        print(output)
-        print("OUTPUT LENGTH:", output.count)
-
         let errors = output
             .split(separator: "\n", omittingEmptySubsequences: true)
             .map(String.init)
@@ -89,14 +85,15 @@ final class FFmpegScanner: @unchecked Sendable {
 
         guard durationSeconds > 0 else { return [] }
 
-        var windows = scanRange(file: file, durationSeconds: durationSeconds, step: 60.0)
+        var windows = scanRangeWithSeek(file: file, durationSeconds: durationSeconds, step: 60.0)
         guard !windows.isEmpty else { return [] }
 
-        windows = refineWindows(file: file, seedWindows: windows, step: 5.0)
-        windows = refineWindows(file: file, seedWindows: windows, step: 1.0)
-        windows = refineWindows(file: file, seedWindows: windows, step: 0.5)
+        windows = refineWindowsWithSeek(file: file, seedWindows: windows, step: 5.0)
+        windows = refineWindowsWithSeek(file: file, seedWindows: windows, step: 1.0)
+        windows = refineWindowsWithSeek(file: file, seedWindows: windows, step: 0.5)
 
-        return mergeWindows(windows)
+        let normalized = mergeWindows(windows).map { normalizePrimaryWindow($0) }
+        return mergeWindows(normalized)
     }
 
     func editorialReviewWindow(for primaryWindow: TimeWindow, durationSeconds: Double) -> TimeWindow {
@@ -120,7 +117,7 @@ final class FFmpegScanner: @unchecked Sendable {
         "\(formatTimecode(window.start))–\(formatTimecode(window.end))"
     }
 
-    private func scanRange(file: URL, durationSeconds: Double, step: Double) -> [TimeWindow] {
+    private func scanRangeWithSeek(file: URL, durationSeconds: Double, step: Double) -> [TimeWindow] {
         var windows: [TimeWindow] = []
         var cursor = 0.0
 
@@ -135,7 +132,7 @@ final class FFmpegScanner: @unchecked Sendable {
         return mergeWindows(windows)
     }
 
-    private func refineWindows(file: URL, seedWindows: [TimeWindow], step: Double) -> [TimeWindow] {
+    private func refineWindowsWithSeek(file: URL, seedWindows: [TimeWindow], step: Double) -> [TimeWindow] {
         guard !seedWindows.isEmpty else { return [] }
 
         var refined: [TimeWindow] = []
@@ -153,6 +150,21 @@ final class FFmpegScanner: @unchecked Sendable {
         }
 
         return mergeWindows(refined)
+    }
+
+    private func normalizePrimaryWindow(_ window: TimeWindow) -> TimeWindow {
+        var start = ceil(window.start * 2.0 - 0.000001) / 2.0
+
+        if abs(start.rounded() - start) < 0.0001 {
+            start += 0.5
+        }
+
+        let end = floor(window.end * 2.0 + 0.000001) / 2.0
+
+        let safeStart = max(0, start)
+        let safeEnd = max(safeStart + 0.5, end)
+
+        return TimeWindow(start: safeStart, end: safeEnd)
     }
 
     private func assetDurationSeconds(_ asset: AVURLAsset) async -> Double {
@@ -255,15 +267,7 @@ final class FFmpegScanner: @unchecked Sendable {
         }
 
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let output = String(data: data, encoding: .utf8) ?? ""
-
-        if process.terminationStatus != 0 {
-            print("FFmpeg exited with status:", process.terminationStatus)
-            print("Output:")
-            print(output)
-        }
-
-        return output
+        return String(data: data, encoding: .utf8) ?? ""
     }
 
     private func ffmpegErrorCount(file: URL, start: String, end: String) -> Int {
@@ -277,6 +281,7 @@ final class FFmpegScanner: @unchecked Sendable {
             "-"
         ])
 
+        let lower = output.lowercased()
         let needles = [
             "invalid frame header",
             "wrong picture",
@@ -291,8 +296,7 @@ final class FFmpegScanner: @unchecked Sendable {
             "wrong picture header size"
         ]
 
-        return output
-            .lowercased()
+        return lower
             .split(separator: "\n", omittingEmptySubsequences: true)
             .filter { line in
                 needles.contains(where: { line.contains($0) })

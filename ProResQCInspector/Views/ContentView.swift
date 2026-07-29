@@ -1,39 +1,36 @@
 import SwiftUI
-import UniformTypeIdentifiers
-import AppKit
 
 struct ContentView: View {
     @StateObject private var model = QCModel()
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 12) {
             HeaderView()
-                .padding(.bottom, 4)
+                .padding(.bottom, 18)
 
-            ScrollView(.vertical) {
-                VStack(spacing: 18) {
-                    DropZoneView(model: model)
-                        .padding(.top, 8)
+            DropZoneView(model: model)
+                .frame(height: 130)
 
-                    HStack(alignment: .top, spacing: 14) {
-                        QueueView(model: model)
-                            .frame(width: 610)
+            HSplitView {
+                QueueView(model: model)
+                    .frame(minWidth: 480, idealWidth: 620, maxWidth: .infinity, maxHeight: .infinity)
 
-                        DetailPanelView(model: model)
-                            .frame(maxWidth: .infinity)
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-                .padding(.bottom, 8)
+                DetailPanelView(model: model)
+                    .frame(minWidth: 600, idealWidth: 860, maxWidth: .infinity, maxHeight: .infinity)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             FooterView(model: model)
                 .padding(.top, 2)
         }
         .padding(.horizontal, 24)
         .padding(.top, 18)
-        .padding(.bottom, 14)
-        .frame(minWidth: 1500, idealWidth: 1580, minHeight: 760, idealHeight: 800)
+        .padding(.bottom, 16)
+        .frame(minWidth: 1500, minHeight: 900)
+        .onDeleteCommand {
+            guard model.selectedFileID != nil else { return }
+            model.removeSelectedFile()
+        }
     }
 }
 

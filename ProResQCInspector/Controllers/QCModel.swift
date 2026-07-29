@@ -10,8 +10,12 @@ final class QCModel: NSObject, ObservableObject {
     @Published var isBusy = false
     @Published var progress: Double = 0
     @Published var statusText: String = "Ready to Analyze"
+    @Published var elapsedText: String = "00:00"
 
     private let scanner = FFmpegScanner()
+    private let reportFormatter = ReportFormatter()
+    private var elapsedTask: Task<Void, Never>?
+    private var analysisStartedAt: Date?
 
     var selectedFile: MediaFile? {
         guard let selectedFileID else { return nil }
@@ -22,8 +26,20 @@ final class QCModel: NSObject, ObservableObject {
         selectedFile?.report.isEmpty == false || files.contains(where: { !$0.report.isEmpty })
     }
 
+    var canRemoveSelectedFile: Bool {
+        selectedFileID != nil && !isBusy
+    }
+
     var selectedReportTitle: String {
         selectedFile?.url.lastPathComponent ?? "No File Selected"
+    }
+
+    var selectedAnalysisDate: String {
+        reportFormatter.analysisDateString(for: selectedFile?.analyzedAt)
+    }
+
+    var selectedAnalysisTime: String {
+        reportFormatter.analysisTimeString(for: selectedFile?.analyzedAt)
     }
 
     var selectedReportText: String {
@@ -95,12 +111,29 @@ final class QCModel: NSObject, ObservableObject {
         return accepted
     }
 
+    func removeSelectedFile() {
+        guard !isBusy, let selectedFileID else { return }
+        guard let index = files.firstIndex(where: { $0.id == selectedFileID }) else { return }
+
+        files.remove(at: index)
+
+        if files.isEmpty {
+            self.selectedFileID = nil
+        } else {
+            let nextIndex = min(index, files.count - 1)
+            self.selectedFileID = files[nextIndex].id
+        }
+
+        statusText = "File removed"
+    }
+
     func analyze() {
         guard !files.isEmpty else { return }
 
         isBusy = true
         progress = 0
-        statusText = "Checking Decoder..."
+        statusText = "Analyzing..."
+        startElapsedTimer()
 
         for index in files.indices {
             files[index].status = "Checking Decoder"
@@ -117,7 +150,7 @@ final class QCModel: NSObject, ObservableObject {
                     guard index < self.files.count else { return }
                     self.files[index].status = "Checking Decoder"
                     self.files[index].result = "In Progress"
-                    self.statusText = "Checking Decoder..."
+                    self.statusText = "Analyzing..."
                 }
 
                 let validation = await scanner.validateFile(url)
@@ -133,15 +166,15 @@ final class QCModel: NSObject, ObservableObject {
                         guard index < self.files.count else { return }
                         self.files[index].status = "Finding Error Window"
                         self.files[index].result = "In Progress"
-                        self.statusText = "Finding Error Window..."
+                        self.statusText = "Refining Error Window..."
                     }
 
                     let windows = scanner.scanForBadWindows(file: url, durationSeconds: duration)
                     if let first = windows.first, let last = windows.last {
                         let primaryWindow = TimeWindow(start: first.start, end: last.end)
                         primaryRegion = scanner.formatWindow(primaryWindow)
-                        reviewWindow = scanner.formatWindow(
-                            scanner.editorialReviewWindow(for: primaryWindow, durationSeconds: duration)
+                        reviewWindow = reportFormatter.formatWindow(
+                            reportFormatter.editorialReviewWindow(for: primaryWindow, durationSeconds: duration)
                         )
                     }
 
@@ -159,9 +192,10 @@ final class QCModel: NSObject, ObservableObject {
                     self.files[index].result = result
                     self.files[index].region = primaryRegion
                     self.files[index].reviewWindow = reviewWindow
+                    self.files[index].analyzedAt = Date()
 
                     let updated = self.files[index]
-                    self.files[index].report = self.buildReport(for: updated)
+                    self.files[index].report = self.reportFormatter.report(for: updated)
 
                     self.progress = Double(index + 1) / Double(self.files.count)
                 }
@@ -170,6 +204,7 @@ final class QCModel: NSObject, ObservableObject {
             await MainActor.run {
                 self.statusText = "Complete"
                 self.isBusy = false
+                self.stopElapsedTimer()
             }
         }
     }
@@ -181,7 +216,7 @@ final class QCModel: NSObject, ObservableObject {
             return
         }
 
-        let report = file.report.isEmpty ? buildReport(for: file) : file.report
+        let report = file.report.isEmpty ? reportFormatter.report(for: file) : file.report
         guard !report.isEmpty else {
             statusText = "No report available"
             return
@@ -197,7 +232,9 @@ final class QCModel: NSObject, ObservableObject {
         selectedFileID = nil
         progress = 0
         statusText = "Ready to Analyze"
+        elapsedText = "00:00"
         isBusy = false
+        stopElapsedTimer()
     }
 
     private func loadMetadata(for url: URL) {
@@ -223,77 +260,38 @@ final class QCModel: NSObject, ObservableObject {
                     self.files[index].result = "Metadata Failed"
                     self.files[index].region = "—"
                     self.files[index].reviewWindow = "—"
-                    self.files[index].report = self.buildReport(for: self.files[index])
+                    self.files[index].analyzedAt = Date()
+                    self.files[index].report = self.reportFormatter.report(for: self.files[index])
                 }
             }
         }
     }
 
-    private func buildReport(for file: MediaFile) -> String {
-        var lines: [String] = []
+    private func startElapsedTimer() {
+        analysisStartedAt = Date()
+        elapsedText = "00:00"
 
-        lines.append("I performed a technical validation of the following master:")
-        lines.append("File:")
-        lines.append(file.url.lastPathComponent)
-        lines.append("")
-        lines.append("Summary")
+        elapsedTask?.cancel()
+        elapsedTask = Task { [weak self] in
+            while !Task.isCancelled {
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
 
-        switch file.result {
-        case "Passed":
-            lines.append("The file did not produce FFmpeg-detected ProRes decode errors during validation.")
-        case "Errors Found":
-            lines.append("The file contains ProRes bitstream decode errors that are reproducible using FFmpeg's ProRes decoder. The errors are not limited to metadata and indicate malformed video frames within the ProRes stream.")
-        case "Metadata Failed":
-            lines.append("The file could not be fully validated because metadata extraction failed.")
-        default:
-            lines.append("The file is ready for analysis.")
+                guard !Task.isCancelled else { break }
+
+                await MainActor.run {
+                    guard let self, let startedAt = self.analysisStartedAt else { return }
+                    let seconds = Int(Date().timeIntervalSince(startedAt))
+                    let minutes = seconds / 60
+                    let remainder = seconds % 60
+                    self.elapsedText = String(format: "%02d:%02d", minutes, remainder)
+                }
+            }
         }
+    }
 
-        lines.append("")
-        lines.append("Test Results")
-
-        switch file.result {
-        case "Passed":
-            lines.append("The test completed without FFmpeg-detected decode errors.")
-        case "Errors Found":
-            lines.append("The test reported repeated errors including:")
-            lines.append("invalid frame header")
-            lines.append("Error submitting packet to decoder: Invalid data found when processing input")
-            lines.append("These errors indicate that portions of the ProRes video stream cannot be decoded correctly by a standards-compliant decoder.")
-        case "Metadata Failed":
-            lines.append("Metadata extraction failed, so the file could not be fully analyzed.")
-        default:
-            lines.append("The file has not been analyzed yet.")
-        }
-
-        lines.append("")
-        lines.append("Affected Region")
-
-        if file.result == "Errors Found" {
-            lines.append("Primary error region: \(file.region)")
-            lines.append("For editorial purposes, I recommend reviewing approximately:")
-            lines.append(file.reviewWindow)
-            lines.append("to ensure the entire affected section is replaced or regenerated.")
-        } else if file.result == "Passed" {
-            lines.append("No discrete error region was identified.")
-        } else {
-            lines.append("No error region was identified.")
-        }
-
-        lines.append("")
-        lines.append("Recommendation")
-
-        switch file.result {
-        case "Passed":
-            lines.append("The file passed validation. No ProRes decode errors remain to be addressed.")
-        case "Errors Found":
-            lines.append("Please review the original timeline and regenerate this portion of the ProRes master, or provide a newly exported master from the source project. After replacement, I will analyze the revised file to confirm that no ProRes decode errors remain.")
-        case "Metadata Failed":
-            lines.append("Please verify the source file and try again. After replacement, I will analyze the revised file to confirm that no ProRes decode errors remain.")
-        default:
-            lines.append("Run Analyze to generate a validation report.")
-        }
-
-        return lines.joined(separator: "\n")
+    private func stopElapsedTimer() {
+        elapsedTask?.cancel()
+        elapsedTask = nil
+        analysisStartedAt = nil
     }
 }
