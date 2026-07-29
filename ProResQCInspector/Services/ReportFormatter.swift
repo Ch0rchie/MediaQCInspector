@@ -71,7 +71,7 @@ struct ReportFormatter {
             "",
             "Technical validation completed successfully.",
             "",
-            "Result",
+            "Result: PASS",
             "",
             "No video decode errors were detected."
         ]
@@ -88,9 +88,13 @@ struct ReportFormatter {
             "",
             "Technical validation identified one or more video decode errors.",
             "",
+            "Result: FAIL",
+            "",
+            "Video decode errors were detected.",
+            "",
             "Findings",
             "",
-            "The test reported repeated errors including:",
+            "Reported decoder errors:",
             "invalid frame header",
             "Error submitting packet to decoder: Invalid data found when processing input",
             "",
@@ -115,7 +119,7 @@ struct ReportFormatter {
             "",
             "Metadata extraction failed.",
             "",
-            "Result",
+            "Result: METADATA FAILED",
             "",
             "The file could not be fully analyzed."
         ]

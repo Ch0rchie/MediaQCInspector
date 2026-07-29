@@ -1,3 +1,4 @@
+// QCModel.swift
 import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
@@ -135,9 +136,11 @@ final class QCModel: NSObject, ObservableObject {
         statusText = "Analyzing..."
         startElapsedTimer()
 
+        let totalFiles = files.count
+
         for index in files.indices {
-            files[index].status = "Checking Decoder"
-            files[index].result = "In Progress"
+            files[index].status = MediaFile.AnalysisStatus.checkingDecoder.rawValue
+            files[index].result = MediaFile.AnalysisResult.inProgress.rawValue
             files[index].region = "—"
             files[index].reviewWindow = "—"
         }
@@ -148,8 +151,8 @@ final class QCModel: NSObject, ObservableObject {
 
                 await MainActor.run {
                     guard index < self.files.count else { return }
-                    self.files[index].status = "Checking Decoder"
-                    self.files[index].result = "In Progress"
+                    self.files[index].status = MediaFile.AnalysisStatus.checkingDecoder.rawValue
+                    self.files[index].result = MediaFile.AnalysisResult.inProgress.rawValue
                     self.statusText = "Analyzing..."
                 }
 
@@ -157,15 +160,15 @@ final class QCModel: NSObject, ObservableObject {
                 let errors = validation.errors
                 let duration = validation.duration ?? 0
 
-                var result = "Passed"
+                var result = MediaFile.AnalysisResult.passed.rawValue
                 var primaryRegion = "—"
                 var reviewWindow = "—"
 
                 if !errors.isEmpty {
                     await MainActor.run {
                         guard index < self.files.count else { return }
-                        self.files[index].status = "Finding Error Window"
-                        self.files[index].result = "In Progress"
+                        self.files[index].status = MediaFile.AnalysisStatus.findingErrorWindow.rawValue
+                        self.files[index].result = MediaFile.AnalysisResult.inProgress.rawValue
                         self.statusText = "Refining Error Window..."
                     }
 
@@ -178,17 +181,17 @@ final class QCModel: NSObject, ObservableObject {
                         )
                     }
 
-                    result = "Errors Found"
+                    result = MediaFile.AnalysisResult.errorsFound.rawValue
                 }
 
                 await MainActor.run {
                     guard index < self.files.count else { return }
 
-                    self.files[index].status = "Generating Report"
-                    self.files[index].result = "In Progress"
+                    self.files[index].status = MediaFile.AnalysisStatus.generatingReport.rawValue
+                    self.files[index].result = MediaFile.AnalysisResult.inProgress.rawValue
                     self.statusText = "Generating Report..."
 
-                    self.files[index].status = "Complete"
+                    self.files[index].status = MediaFile.AnalysisStatus.complete.rawValue
                     self.files[index].result = result
                     self.files[index].region = primaryRegion
                     self.files[index].reviewWindow = reviewWindow
@@ -197,7 +200,7 @@ final class QCModel: NSObject, ObservableObject {
                     let updated = self.files[index]
                     self.files[index].report = self.reportFormatter.report(for: updated)
 
-                    self.progress = Double(index + 1) / Double(self.files.count)
+                    self.progress = Double(index + 1) / Double(totalFiles)
                 }
             }
 
@@ -250,14 +253,14 @@ final class QCModel: NSObject, ObservableObject {
                     self.files[index].frameRate = metadata.frameRate
                     self.files[index].duration = metadata.duration
                     self.files[index].fileSize = metadata.fileSize
-                    self.files[index].status = "Ready to Analyze"
-                    self.files[index].result = "Not Yet Analyzed"
+                    self.files[index].status = MediaFile.AnalysisStatus.readyToAnalyze.rawValue
+                    self.files[index].result = MediaFile.AnalysisResult.notYetAnalyzed.rawValue
                     self.files[index].region = "—"
                     self.files[index].reviewWindow = "—"
                     self.files[index].report = ""
                 } else {
-                    self.files[index].status = "Error"
-                    self.files[index].result = "Metadata Failed"
+                    self.files[index].status = MediaFile.AnalysisStatus.error.rawValue
+                    self.files[index].result = MediaFile.AnalysisResult.metadataFailed.rawValue
                     self.files[index].region = "—"
                     self.files[index].reviewWindow = "—"
                     self.files[index].analyzedAt = Date()
