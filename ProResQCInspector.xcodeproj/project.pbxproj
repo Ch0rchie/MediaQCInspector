@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		74E4A66F30198D500000BC57 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 74E4A66E30198D400000BC57 /* README.md */; };
+		74E4A67130198E1F0000BC57 /* CHANGELOG.md in Resources */ = {isa = PBXBuildFile; fileRef = 74E4A67030198DEE0000BC57 /* CHANGELOG.md */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		74C17AFC3017EAF700B7C4E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +32,8 @@
 		74C17AEA3017EAF600B7C4E1 /* ProResQCInspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProResQCInspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		74C17AFB3017EAF700B7C4E1 /* ProResQCInspectorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProResQCInspectorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		74C17B053017EAF700B7C4E1 /* ProResQCInspectorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProResQCInspectorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		74E4A66E30198D400000BC57 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		74E4A67030198DEE0000BC57 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -80,6 +87,8 @@
 		74C17AE13017EAF600B7C4E1 = {
 			isa = PBXGroup;
 			children = (
+				74E4A67030198DEE0000BC57 /* CHANGELOG.md */,
+				74E4A66E30198D400000BC57 /* README.md */,
 				74F42C0E3019427D0098CB19 /* Design */,
 				74C17AEC3017EAF600B7C4E1 /* ProResQCInspector */,
 				74C17AFE3017EAF700B7C4E1 /* ProResQCInspectorTests */,
@@ -219,6 +228,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				74E4A67130198E1F0000BC57 /* CHANGELOG.md in Resources */,
+				74E4A66F30198D500000BC57 /* README.md in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,7 +422,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -436,7 +447,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.3.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

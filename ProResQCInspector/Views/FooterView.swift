@@ -11,7 +11,7 @@ struct FooterView: View {
             .keyboardShortcut(.defaultAction)
             .disabled(model.files.isEmpty || model.isBusy)
 
-            Button("Remove Selected") {
+            Button("Remove") {
                 model.removeSelectedFile()
             }
             .disabled(!model.canRemoveSelectedFile)

@@ -27,10 +27,6 @@ struct ContentView: View {
         .padding(.top, 18)
         .padding(.bottom, 16)
         .frame(minWidth: 1500, minHeight: 900)
-        .onDeleteCommand {
-            guard model.selectedFileID != nil else { return }
-            model.removeSelectedFile()
-        }
     }
 }
 

@@ -1,5 +1,4 @@
 import SwiftUI
-import AppKit
 
 struct QueueView: View {
     @ObservedObject var model: QCModel
@@ -14,18 +13,24 @@ struct QueueView: View {
             }
             .padding(.horizontal, 2)
 
-            List(selection: $model.selectedFileID) {
-                ForEach(model.files) { file in
-                    fileRow(for: file)
-                        .tag(file.id)
-                        .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
+            if model.files.isEmpty {
+                emptyState
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(model.files) { file in
+                            fileRow(for: file)
+                                .contentShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .onTapGesture {
+                                    model.selectedFileID = file.id
+                                }
+                        }
+                    }
+                    .padding(.vertical, 2)
                 }
+                .scrollIndicators(.visible)
+                .background(Color.clear)
             }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .background(Color.clear)
         }
         .padding(12)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -37,6 +42,20 @@ struct QueueView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(Color.secondary.opacity(0.18), lineWidth: 1)
         )
+    }
+
+    private var emptyState: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("No files in queue")
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
+
+            Text("Add files to begin analysis.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding(.vertical, 24)
     }
 
     private func fileRow(for file: MediaFile) -> some View {
