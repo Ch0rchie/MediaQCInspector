@@ -20,7 +20,7 @@ final class AboutPanelController {
                 defer: false
             )
 
-            panel.title = "About ProRes QC Inspector"
+            panel.title = "About Media QC Inspector"
             panel.isReleasedWhenClosed = false
             panel.level = .floating
             panel.isMovableByWindowBackground = true

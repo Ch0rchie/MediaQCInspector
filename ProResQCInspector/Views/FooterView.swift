@@ -4,6 +4,7 @@ struct FooterView: View {
     @ObservedObject var model: QCModel
     @State private var showingStopConfirmation = false
     @State private var showingRemoveConfirmation = false
+    @State private var showingClearConfirmation = false
 
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
@@ -24,13 +25,13 @@ struct FooterView: View {
             }
 
             Button("Remove") {
-                showingRemoveConfirmation = true
+                handleRemoveTapped()
             }
             .buttonStyle(.bordered)
             .disabled(!model.canRemoveSelectedFile)
 
             Button("Clear") {
-                model.clear()
+                handleClearTapped()
             }
             .buttonStyle(.bordered)
             .disabled(model.files.isEmpty || model.isBusy)
@@ -87,7 +88,6 @@ struct FooterView: View {
                     }
                 }
                 .frame(maxWidth: 350, alignment: .leading)
-                .offset(x: 30)
             } else {
                 Text(model.statusText)
                     .font(.caption)
@@ -111,7 +111,7 @@ struct FooterView: View {
             Text("This will stop the current file and pause the queue. You can resume later.")
         }
         .confirmationDialog(
-            model.shouldConfirmStopAndRemoveSelectedFile ? "Stop and remove this file?" : "Remove selected file?",
+            removeDialogTitle,
             isPresented: $showingRemoveConfirmation,
             titleVisibility: .visible
         ) {
@@ -127,15 +127,99 @@ struct FooterView: View {
 
             Button("Cancel", role: .cancel) { }
         } message: {
-            if model.shouldConfirmStopAndRemoveSelectedFile {
-                Text("This file is currently being analyzed. Stopping now will remove it from the queue and continue with the next file.")
-            } else {
-                Text("Remove the selected file from the queue?")
+            Text(removeDialogMessage)
+        }
+        .confirmationDialog(
+            clearDialogTitle,
+            isPresented: $showingClearConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("Clear All", role: .destructive) {
+                model.clear()
             }
+
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text(clearDialogMessage)
         }
     }
 
     private var remainingValue: String {
         model.etaText.replacingOccurrences(of: "ETA ", with: "")
+    }
+
+    private var selectedFileHasResults: Bool {
+        guard let file = model.selectedFile else { return false }
+        return file.analyzedAt != nil ||
+               !file.report.isEmpty ||
+               file.result != MediaFile.AnalysisResult.notYetAnalyzed.rawValue
+    }
+
+    private var hasAnyAnalyzedResults: Bool {
+        model.files.contains { file in
+            file.analyzedAt != nil ||
+            !file.report.isEmpty ||
+            file.result != MediaFile.AnalysisResult.notYetAnalyzed.rawValue
+        }
+    }
+
+    private var shouldConfirmClear: Bool {
+        if model.files.count > 1 {
+            return true
+        }
+
+        return hasAnyAnalyzedResults
+    }
+
+    private var removeDialogTitle: String {
+        if model.shouldConfirmStopAndRemoveSelectedFile {
+            return "Stop and remove this file?"
+        } else if selectedFileHasResults {
+            return "Remove analyzed file?"
+        } else {
+            return "Remove selected file?"
+        }
+    }
+
+    private var removeDialogMessage: String {
+        if model.shouldConfirmStopAndRemoveSelectedFile {
+            return "This file is currently being analyzed. Stopping now will remove it from the queue and continue with the next file."
+        } else if selectedFileHasResults {
+            return "This will remove the selected file and its analysis results from the queue. This action cannot be undone."
+        } else {
+            return "Remove the selected file from the queue?"
+        }
+    }
+
+    private var clearDialogTitle: String {
+        if hasAnyAnalyzedResults {
+            return "Clear queue and results?"
+        } else {
+            return "Clear queue?"
+        }
+    }
+
+    private var clearDialogMessage: String {
+        if hasAnyAnalyzedResults {
+            return "This will remove all files and analysis results from the queue. This action cannot be undone."
+        } else {
+            return "This will remove \(model.files.count) files from the queue. This action cannot be undone."
+        }
+    }
+
+    private func handleRemoveTapped() {
+        if model.shouldConfirmStopAndRemoveSelectedFile || selectedFileHasResults {
+            showingRemoveConfirmation = true
+        } else {
+            model.removeSelectedFile()
+        }
+    }
+
+    private func handleClearTapped() {
+        if shouldConfirmClear {
+            showingClearConfirmation = true
+        } else {
+            model.clear()
+        }
     }
 }

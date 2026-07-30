@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		74E4A6B2301AD0F10000BC57 /* Screenshot.png in Resources */ = {isa = PBXBuildFile; fileRef = 74E4A6B1301AD0F10000BC57 /* Screenshot.png */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		74C17AFC3017EAF700B7C4E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -39,6 +35,11 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		743C22C7301BE60C00AC0526 /* ThirdParty */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = ThirdParty;
+			sourceTree = "<group>";
+		};
 		74C17AEC3017EAF600B7C4E1 /* ProResQCInspector */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ProResQCInspector;
@@ -99,6 +100,7 @@
 				74C17AFE3017EAF700B7C4E1 /* ProResQCInspectorTests */,
 				74C17B083017EAF700B7C4E1 /* ProResQCInspectorUITests */,
 				74C17AEB3017EAF600B7C4E1 /* Products */,
+				743C22C7301BE60C00AC0526 /* ThirdParty */,
 			);
 			sourceTree = "<group>";
 		};
@@ -136,6 +138,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				743C22C7301BE60C00AC0526 /* ThirdParty */,
 				74C17AEC3017EAF600B7C4E1 /* ProResQCInspector */,
 				74F42C0E3019427D0098CB19 /* Design */,
 			);
@@ -241,7 +244,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				74E4A6B2301AD0F10000BC57 /* Screenshot.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -434,7 +436,8 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.4.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -459,7 +462,8 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.4.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

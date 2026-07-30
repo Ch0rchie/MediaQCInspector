@@ -1,4 +1,3 @@
-// FFmpegScanner.swift
 import Foundation
 import AVFoundation
 import CoreMedia
@@ -9,7 +8,7 @@ struct TimeWindow: Hashable {
 }
 
 final class FFmpegScanner: @unchecked Sendable {
-    private let ffmpegPath = "/opt/homebrew/bin/ffmpeg"
+    private let ffmpegURL: URL?
     private let lock = NSLock()
     private var cancelRequested = false
     private var currentProcess: Process?
@@ -20,6 +19,10 @@ final class FFmpegScanner: @unchecked Sendable {
         formatter.countStyle = .file
         return formatter
     }()
+
+    init() {
+        self.ffmpegURL = try? ToolLocator.ffmpegURL()
+    }
 
     func resetCancellation() {
         lock.lock()
@@ -363,10 +366,15 @@ final class FFmpegScanner: @unchecked Sendable {
     private func runFFmpeg(arguments: [String]) -> String {
         if isCancelled() { return "" }
 
+        guard let ffmpegURL else {
+            print("FFmpeg executable unavailable. Check bundled tools or development PATH.")
+            return ""
+        }
+
         let process = Process()
         let pipe = Pipe()
 
-        process.executableURL = URL(fileURLWithPath: ffmpegPath)
+        process.executableURL = ffmpegURL
         process.arguments = arguments
         process.standardOutput = pipe
         process.standardError = pipe

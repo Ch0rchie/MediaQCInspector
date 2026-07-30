@@ -8,7 +8,7 @@ struct ProResQCInspectorApp: App {
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
-                Button("About ProRes QC Inspector") {
+                Button("About Media QC Inspector") {
                     AboutPanelController.shared.show()
                 }
             }
