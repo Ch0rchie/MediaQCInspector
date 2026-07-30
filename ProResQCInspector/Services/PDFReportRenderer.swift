@@ -1,3 +1,11 @@
+//
+//  PDFReportRenderer.swift
+//  ProResQCInspector
+//
+//  Created by gelbda53 on 7/29/26.
+//
+
+
 import Foundation
 import AppKit
 

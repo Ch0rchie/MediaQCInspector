@@ -24,7 +24,48 @@ All notable changes to this project will be documented in this file.
 - Queue interaction
 - Remove file workflow
 
-### Validation
+### Verified
 - Validated against benchmark ProRes files with no decode errors.
 - Validated against benchmark ProRes files containing known decode errors.
 - Verified error localization against benchmark timestamps.
+
+## v0.4.0 — July 29, 2026
+
+### Added
+- Dynamic analysis queue
+- Live queue processing while adding files
+- Current file progress indicator
+- Queue progress indicator
+- Elapsed and Remaining timers
+- Queue ETA
+- Resume after Stop
+- Stop confirmation dialog
+- Remove confirmation dialog
+- Export Report as PDF
+- Rich text report copying
+- Improved report formatting
+- Current file auto-selection
+- Result badge redesign
+- About window version/build display
+- Improved status messaging throughout analysis
+
+### Changed
+- Report generation redesigned with shared formatting for the detail view, clipboard copy, and PDF export.
+
+### Improved
+- Queue workflow
+- Detail panel layout
+- Footer layout
+- Window sizing
+- Report readability
+- Progress reporting
+- Stop/Resume behavior
+- Queue management
+- Overall UI polish
+
+### Fixed
+- Stop & Remove queue bug
+- Resume restarting completed files
+- Live queue updates
+- Progress calculation while queue changes
+- ETA updates while queue changes

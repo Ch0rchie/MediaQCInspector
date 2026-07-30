@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		74E4A6B2301AD0F10000BC57 /* Screenshot.png in Resources */ = {isa = PBXBuildFile; fileRef = 74E4A6B1301AD0F10000BC57 /* Screenshot.png */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		74C17AFC3017EAF700B7C4E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -31,6 +35,7 @@
 		74E4A67030198DEE0000BC57 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 		74E4A6A9301A8CD80000BC57 /* DESIGN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DESIGN.md; sourceTree = "<group>"; };
 		74E4A6AB301A991C0000BC57 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		74E4A6B1301AD0F10000BC57 /* Screenshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Screenshot.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -84,6 +89,7 @@
 		74C17AE13017EAF600B7C4E1 = {
 			isa = PBXGroup;
 			children = (
+				74E4A6B0301AD0BB0000BC57 /* Documentation */,
 				74E4A6AB301A991C0000BC57 /* .gitignore */,
 				74E4A6A9301A8CD80000BC57 /* DESIGN.md */,
 				74E4A67030198DEE0000BC57 /* CHANGELOG.md */,
@@ -104,6 +110,14 @@
 				74C17B053017EAF700B7C4E1 /* ProResQCInspectorUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		74E4A6B0301AD0BB0000BC57 /* Documentation */ = {
+			isa = PBXGroup;
+			children = (
+				74E4A6B1301AD0F10000BC57 /* Screenshot.png */,
+			);
+			path = Documentation;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -227,6 +241,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				74E4A6B2301AD0F10000BC57 /* Screenshot.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -419,7 +434,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.0;
+				MARKETING_VERSION = 0.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -444,7 +459,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.3.0;
+				MARKETING_VERSION = 0.4.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

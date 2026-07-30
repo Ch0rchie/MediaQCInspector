@@ -2,32 +2,29 @@ import SwiftUI
 
 struct FooterView: View {
     @ObservedObject var model: QCModel
-    @State private var showingStopAndRemoveConfirmation = false
+    @State private var showingStopConfirmation = false
+    @State private var showingRemoveConfirmation = false
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(alignment: .center, spacing: 10) {
             if model.isBusy {
                 Button("Stop") {
-                    model.stopAnalysis()
+                    showingStopConfirmation = true
                 }
                 .keyboardShortcut(.cancelAction)
                 .buttonStyle(.borderedProminent)
                 .tint(.red)
             } else {
-                Button("Analyze") {
+                Button(model.primaryActionTitle) {
                     model.analyze()
                 }
                 .keyboardShortcut(.defaultAction)
                 .buttonStyle(.borderedProminent)
-                .disabled(model.files.isEmpty)
+                .disabled(!model.canAnalyzeOrResume)
             }
 
             Button("Remove") {
-                if model.shouldConfirmStopAndRemoveSelectedFile {
-                    showingStopAndRemoveConfirmation = true
-                } else {
-                    model.removeSelectedFile()
-                }
+                showingRemoveConfirmation = true
             }
             .buttonStyle(.bordered)
             .disabled(!model.canRemoveSelectedFile)
@@ -41,41 +38,104 @@ struct FooterView: View {
             Spacer(minLength: 0)
 
             if model.isBusy {
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(model.statusText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    HStack(spacing: 8) {
-                        ProgressView(value: model.progress)
-                            .frame(width: 180)
-
-                        Text(model.elapsedText)
-                            .font(.caption.monospacedDigit())
+                VStack(alignment: .leading, spacing: 3) {
+                    HStack(spacing: 4) {
+                        Text("Status:")
+                            .font(.caption2.weight(.semibold))
                             .foregroundStyle(.secondary)
-                            .frame(width: 42, alignment: .trailing)
+
+                        Text(model.statusText)
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+
+                    HStack(alignment: .center, spacing: 6) {
+                        Text("Queue")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.secondary)
+
+                        ProgressView(value: model.progress)
+                            .frame(width: 175)
+
+                        Text("\(Int((model.progress * 100).rounded()))%")
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                    }
+
+                    HStack(spacing: 18) {
+                        HStack(spacing: 4) {
+                            Text("Elapsed:")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(.secondary)
+
+                            Text(model.elapsedText)
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
+
+                        HStack(spacing: 4) {
+                            Text("Remaining:")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(.secondary)
+
+                            Text(remainingValue)
+                                .font(.caption.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
+                .frame(maxWidth: 350, alignment: .leading)
+                .offset(x: 30)
             } else {
                 Text(model.statusText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
         }
-        .padding(.top, 4)
+        .padding(.top, 6)
         .padding(.horizontal, 4)
-        .frame(height: 36)
+        .padding(.bottom, 4)
+        .frame(height: 74)
         .confirmationDialog(
-            "Stop analysis and remove this file?",
-            isPresented: $showingStopAndRemoveConfirmation,
+            "Stop analysis?",
+            isPresented: $showingStopConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Stop & Remove", role: .destructive) {
-                model.removeSelectedFile()
+            Button("Stop", role: .destructive) {
+                model.stopAnalysis()
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("This file is currently being analyzed. Stopping now will remove it from the queue and continue with the next file.")
+            Text("This will stop the current file and pause the queue. You can resume later.")
         }
+        .confirmationDialog(
+            model.shouldConfirmStopAndRemoveSelectedFile ? "Stop and remove this file?" : "Remove selected file?",
+            isPresented: $showingRemoveConfirmation,
+            titleVisibility: .visible
+        ) {
+            if model.shouldConfirmStopAndRemoveSelectedFile {
+                Button("Stop & Remove", role: .destructive) {
+                    model.removeSelectedFile()
+                }
+            } else {
+                Button("Remove", role: .destructive) {
+                    model.removeSelectedFile()
+                }
+            }
+
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            if model.shouldConfirmStopAndRemoveSelectedFile {
+                Text("This file is currently being analyzed. Stopping now will remove it from the queue and continue with the next file.")
+            } else {
+                Text("Remove the selected file from the queue?")
+            }
+        }
+    }
+
+    private var remainingValue: String {
+        model.etaText.replacingOccurrences(of: "ETA ", with: "")
     }
 }

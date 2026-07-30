@@ -17,13 +17,20 @@ struct DetailPanelView: View {
 
                 Spacer()
 
-                Button("Copy Report") {
-                    model.copyReport()
+                HStack(spacing: 8) {
+                    Button("Copy Report") {
+                        model.copyReport()
+                    }
+                    .disabled(!model.canCopyReport)
+
+                    Button("Export PDF") {
+                        model.exportReportPDF()
+                    }
+                    .disabled(!model.canExportReport)
                 }
-                .disabled(!model.canCopyReport)
             }
 
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 if let file = model.selectedFile {
                     ScrollView(.horizontal, showsIndicators: true) {
                         Text(file.url.lastPathComponent)
@@ -34,6 +41,33 @@ struct DetailPanelView: View {
                     .frame(height: 24)
 
                     ResultBadgeView(result: file.result)
+
+                    if model.selectedFileIsCurrentlyAnalyzing {
+                        VStack(alignment: .leading, spacing: 3) {
+                            HStack {
+                                Text("Current File Progress")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+
+                                Spacer()
+
+                                Text(model.statusText)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+
+                                Text("\(Int((model.currentFileProgress * 100).rounded()))%")
+                                    .font(.caption2.monospacedDigit())
+                                    .foregroundStyle(.secondary)
+                            }
+
+                            ProgressView(value: model.currentFileProgress)
+                                .controlSize(.small)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 6)
+                        .background(Color.secondary.opacity(0.05))
+                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    }
 
                     LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
                         detailField("Analysis Date", model.selectedAnalysisDate)
