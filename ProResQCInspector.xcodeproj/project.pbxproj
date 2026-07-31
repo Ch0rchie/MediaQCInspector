@@ -34,24 +34,9 @@
 		74E4A6B1301AD0F10000BC57 /* Screenshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Screenshot.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		74CCB49C301C1FE000639C9E /* Exceptions for "ThirdParty" folder in "ProResQCInspector" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				FFmpeg_Homebrew_Backup/ffmpeg,
-				FFmpeg_Homebrew_Backup/ffprobe,
-				FFmpeg_Homebrew_Backup/VERSION,
-			);
-			target = 74C17AE93017EAF600B7C4E1 /* ProResQCInspector */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		743C22C7301BE60C00AC0526 /* ThirdParty */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				74CCB49C301C1FE000639C9E /* Exceptions for "ThirdParty" folder in "ProResQCInspector" target */,
-			);
 			path = ThirdParty;
 			sourceTree = "<group>";
 		};
