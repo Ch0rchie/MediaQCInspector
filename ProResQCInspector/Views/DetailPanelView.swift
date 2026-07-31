@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct DetailPanelView: View {
     @ObservedObject var model: QCModel
@@ -10,97 +11,13 @@ struct DetailPanelView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Analysis Details")
-                    .font(.headline)
-                    .padding(.leading, 2)
+            headerRow()
 
-                Spacer()
-
-                HStack(spacing: 8) {
-                    Button("Copy Report") {
-                        model.copyReport()
-                    }
-                    .disabled(!model.canCopyReport)
-
-                    Button("Export PDF") {
-                        model.exportReportPDF()
-                    }
-                    .disabled(!model.canExportReport)
-                }
-            }
-
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: 12) {
                 if let file = model.selectedFile {
-                    ScrollView(.horizontal, showsIndicators: true) {
-                        Text(file.url.lastPathComponent)
-                            .font(.headline)
-                            .textSelection(.enabled)
-                            .fixedSize(horizontal: true, vertical: false)
-                    }
-                    .frame(height: 24)
-
-                    ResultBadgeView(result: file.result)
-
-                    if model.selectedFileIsCurrentlyAnalyzing {
-                        VStack(alignment: .leading, spacing: 3) {
-                            HStack {
-                                Text("Current File Progress")
-                                    .font(.caption2.weight(.semibold))
-                                    .foregroundStyle(.secondary)
-
-                                Spacer()
-
-                                Text(model.statusText)
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-
-                                Text("\(Int((model.currentFileProgress * 100).rounded()))%")
-                                    .font(.caption2.monospacedDigit())
-                                    .foregroundStyle(.secondary)
-                            }
-
-                            ProgressView(value: model.currentFileProgress)
-                                .controlSize(.small)
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(Color.secondary.opacity(0.05))
-                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                    }
-
-                    LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
-                        detailField("Analysis Date", model.selectedAnalysisDate)
-                        detailField("Analysis Time", model.selectedAnalysisTime)
-                        detailField("Status", file.status, color: statusColor(for: file.status))
-                        detailField("Primary Error Region", file.region)
-                        detailField("Editorial Review Window", file.reviewWindow)
-                    }
-
-                    Divider()
-
-                    Text("Report")
-                        .font(.headline)
-
-                    ScrollView {
-                        Text(model.selectedReportText)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .textSelection(.enabled)
-                            .font(.system(size: 13))
-                            .padding(.bottom, 8)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    fileDetails(for: file)
                 } else {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text("No File Selected")
-                            .font(.headline)
-
-                        Text("Select a file in the table to view analysis details and the generated report.")
-                            .foregroundStyle(.secondary)
-
-                        Spacer(minLength: 0)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                    noFileSelectedView
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -115,6 +32,84 @@ struct DetailPanelView: View {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(Color.secondary.opacity(0.18), lineWidth: 1)
         )
+    }
+
+    @ViewBuilder
+    private func headerRow() -> some View {
+        HStack {
+            Text("Analysis Details")
+                .font(.headline)
+                .padding(.leading, 2)
+
+            Spacer()
+
+            Button("Copy Report") {
+                model.copyReport()
+            }
+            .disabled(!model.canCopyReport)
+        }
+    }
+
+    @ViewBuilder
+    private func fileDetails(for file: MediaFile) -> some View {
+        fileNameSection(file: file)
+        metadataGrid(for: file)
+        Divider()
+        reportSection
+    }
+
+    @ViewBuilder
+    private func fileNameSection(file: MediaFile) -> some View {
+        ScrollView(.horizontal, showsIndicators: true) {
+            Text(file.url.lastPathComponent)
+                .font(.headline)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: true, vertical: false)
+        }
+        .frame(height: 24)
+    }
+
+    @ViewBuilder
+    private func metadataGrid(for file: MediaFile) -> some View {
+        LazyVGrid(columns: columns, alignment: .leading, spacing: 10) {
+            detailField("Analysis Date", model.selectedAnalysisDate)
+            detailField("Analysis Time", model.selectedAnalysisTime)
+            detailField("Status", file.status, color: statusColor(for: file.status))
+            detailField("Result", file.result, color: resultColor(for: file.result))
+            detailField("Primary Error Region", file.region)
+            detailField("Editorial Review Window", file.reviewWindow)
+        }
+    }
+
+    @ViewBuilder
+    private var reportSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Report")
+                .font(.headline)
+
+            ScrollView {
+                Text(model.selectedReportText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .textSelection(.enabled)
+                    .font(.system(size: 13))
+                    .padding(.bottom, 8)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        }
+    }
+
+    @ViewBuilder
+    private var noFileSelectedView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("No File Selected")
+                .font(.headline)
+
+            Text("Select a file in the table to view analysis details and the generated report.")
+                .foregroundStyle(.secondary)
+
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private func detailField(_ label: String, _ value: String, color: Color = .primary) -> some View {
@@ -138,11 +133,26 @@ struct DetailPanelView: View {
     private func statusColor(for status: String) -> Color {
         switch status {
         case "Complete":
-            return .secondary
+            return .green
         case "Checking Decoder", "Finding Error Window", "Generating Report":
             return .blue
         case "Error":
             return .orange
+        default:
+            return .secondary
+        }
+    }
+
+    private func resultColor(for result: String) -> Color {
+        switch result {
+        case "Passed":
+            return .green
+        case "Errors Found":
+            return .red
+        case "Metadata Failed":
+            return .orange
+        case "In Progress":
+            return .blue
         default:
             return .secondary
         }

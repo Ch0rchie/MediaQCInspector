@@ -22,6 +22,7 @@ final class QCModel: NSObject, ObservableObject {
     private let scanner = FFmpegScanner()
     private let reportFormatter = ReportFormatter()
     private var elapsedTask: Task<Void, Never>?
+    private var analysisTask: Task<Void, Never>?
     private var analysisStartedAt: Date?
 
     var selectedFile: MediaFile? {
@@ -29,12 +30,50 @@ final class QCModel: NSObject, ObservableObject {
         return files.first { $0.id == selectedFileID }
     }
 
+    var selectedFileIsCurrentlyAnalyzing: Bool {
+        guard let file = selectedFile else { return false }
+
+        return file.result == MediaFile.AnalysisResult.inProgress.rawValue
+            || file.status == MediaFile.AnalysisStatus.checkingDecoder.rawValue
+            || file.status == MediaFile.AnalysisStatus.generatingReport.rawValue
+    }
+
     var canCopyReport: Bool {
         selectedFile?.report.isEmpty == false || files.contains(where: { !$0.report.isEmpty })
     }
 
+    var canExportReport: Bool {
+        canCopyReport
+    }
+
     var canRemoveSelectedFile: Bool {
         selectedFileID != nil && !isBusy
+    }
+
+    var canAnalyzeOrResume: Bool {
+        !files.isEmpty
+    }
+
+    var primaryActionTitle: String {
+        isBusy ? "Stop" : "Analyze"
+    }
+
+    var shouldConfirmStopAndRemoveSelectedFile: Bool {
+        isBusy && selectedFileID != nil
+    }
+
+    var etaText: String {
+        guard isBusy, progress > 0, progress < 1, let startedAt = analysisStartedAt else {
+            return "ETA --:--"
+        }
+
+        let elapsed = Date().timeIntervalSince(startedAt)
+        let estimatedTotal = elapsed / max(progress, 0.0001)
+        let remaining = max(0, estimatedTotal - elapsed)
+
+        let minutes = Int(remaining) / 60
+        let seconds = Int(remaining) % 60
+        return String(format: "ETA %02d:%02d", minutes, seconds)
     }
 
     var selectedReportTitle: String {
@@ -107,6 +146,7 @@ final class QCModel: NSObject, ObservableObject {
                 }
 
                 guard let url else { return }
+
                 DispatchQueue.main.async {
                     self.addFiles([url])
                 }
@@ -135,7 +175,7 @@ final class QCModel: NSObject, ObservableObject {
     }
 
     func analyze() {
-        guard !files.isEmpty else { return }
+        guard !files.isEmpty, !isBusy else { return }
 
         isBusy = true
         progress = 0
@@ -151,20 +191,27 @@ final class QCModel: NSObject, ObservableObject {
             files[index].reviewWindow = "—"
         }
 
-        Task { [scanner] in
-            let engine = QCEngine(modules: [DecodeValidationModule()])
+        analysisTask?.cancel()
+        analysisTask = Task { [weak self] in
+            guard let self else { return }
 
-            for index in files.indices {
-                let url = files[index].url
+            let engine = QCEngine(modules: [
+                DecodeValidationModule()
+            ])
 
-                await MainActor.run {
-                    guard index < self.files.count else { return }
-                    self.files[index].status = MediaFile.AnalysisStatus.checkingDecoder.rawValue
-                    self.files[index].result = MediaFile.AnalysisResult.inProgress.rawValue
-                    self.statusText = "Analyzing..."
-                }
+            do {
+                for index in self.files.indices {
+                    try Task.checkCancellation()
 
-                do {
+                    let url = self.files[index].url
+
+                    await MainActor.run {
+                        guard index < self.files.count else { return }
+                        self.files[index].status = MediaFile.AnalysisStatus.checkingDecoder.rawValue
+                        self.files[index].result = MediaFile.AnalysisResult.inProgress.rawValue
+                        self.statusText = "Analyzing..."
+                    }
+
                     let engineResult = try await engine.run(fileURL: url)
 
                     var result = MediaFile.AnalysisResult.passed.rawValue
@@ -176,16 +223,14 @@ final class QCModel: NSObject, ObservableObject {
 
                         if let finding = engineResult.findings.first,
                            let timeRange = finding.timeRange {
-                            // DecodeValidationModule currently stores the expanded editorial review
-                            // window in `timeRange`, so we reverse it here to preserve the existing
-                            // region/review window formatting.
                             let expandedWindow = TimeWindow(
                                 start: timeRange.lowerBound,
                                 end: timeRange.upperBound
                             )
-                            let primaryWindow = primaryWindow(fromReviewWindow: expandedWindow)
-                            primaryRegion = scanner.formatWindow(primaryWindow)
-                            reviewWindow = reportFormatter.formatWindow(expandedWindow)
+
+                            let primaryWindow = self.primaryWindow(fromReviewWindow: expandedWindow)
+                            primaryRegion = self.scanner.formatWindow(primaryWindow)
+                            reviewWindow = self.reportFormatter.formatWindow(expandedWindow)
                         }
                     }
 
@@ -207,30 +252,36 @@ final class QCModel: NSObject, ObservableObject {
 
                         self.progress = Double(index + 1) / Double(totalFiles)
                     }
-                } catch {
-                    await MainActor.run {
-                        guard index < self.files.count else { return }
+                }
 
-                        self.files[index].status = MediaFile.AnalysisStatus.error.rawValue
-                        self.files[index].result = MediaFile.AnalysisResult.errorsFound.rawValue
-                        self.files[index].region = "—"
-                        self.files[index].reviewWindow = "—"
-                        self.files[index].analyzedAt = Date()
-
-                        let updated = self.files[index]
-                        self.files[index].report = self.reportFormatter.report(for: updated)
-
-                        self.progress = Double(index + 1) / Double(totalFiles)
-                    }
+                await MainActor.run {
+                    self.statusText = "Complete"
+                    self.isBusy = false
+                    self.stopElapsedTimer()
+                    self.analysisTask = nil
+                }
+            } catch is CancellationError {
+                await MainActor.run {
+                    self.statusText = "Stopped"
+                    self.isBusy = false
+                    self.stopElapsedTimer()
+                    self.analysisTask = nil
+                }
+            } catch {
+                await MainActor.run {
+                    self.statusText = "Analysis failed"
+                    self.isBusy = false
+                    self.stopElapsedTimer()
+                    self.analysisTask = nil
                 }
             }
-
-            await MainActor.run {
-                self.statusText = "Complete"
-                self.isBusy = false
-                self.stopElapsedTimer()
-            }
         }
+    }
+
+    func stopAnalysis() {
+        guard isBusy else { return }
+        statusText = "Stopping..."
+        analysisTask?.cancel()
     }
 
     func copyReport() {
@@ -240,7 +291,7 @@ final class QCModel: NSObject, ObservableObject {
             return
         }
 
-        let report = file.report.isEmpty ? reportFormatter.report(for: file) : file.report
+        let report = reportText(for: file)
         guard !report.isEmpty else {
             statusText = "No report available"
             return
@@ -249,6 +300,48 @@ final class QCModel: NSObject, ObservableObject {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(report, forType: .string)
         statusText = "Report copied"
+    }
+
+    func exportReportPDF() {
+        let file = selectedFile ?? files.first(where: { !$0.report.isEmpty })
+        guard let file else {
+            statusText = "No report available"
+            return
+        }
+
+        let report = reportText(for: file)
+        guard !report.isEmpty else {
+            statusText = "No report available"
+            return
+        }
+
+        let savePanel = NSSavePanel()
+        savePanel.allowedContentTypes = [.pdf]
+        savePanel.canCreateDirectories = true
+        savePanel.nameFieldStringValue = file.url.deletingPathExtension().lastPathComponent + ".pdf"
+
+        savePanel.begin { [weak self] response in
+            guard response == .OK, let url = savePanel.url else { return }
+
+            let textView = NSTextView(frame: NSRect(x: 0, y: 0, width: 612, height: 792))
+            textView.isEditable = false
+            textView.isRichText = false
+            textView.drawsBackground = false
+            textView.string = report
+
+            let pdfData = textView.dataWithPDF(inside: textView.bounds)
+
+            do {
+                try pdfData.write(to: url, options: .atomic)
+                DispatchQueue.main.async {
+                    self?.statusText = "PDF exported"
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    self?.statusText = "PDF export failed"
+                }
+            }
+        }
     }
 
     func clear() {
@@ -289,6 +382,13 @@ final class QCModel: NSObject, ObservableObject {
                 }
             }
         }
+    }
+
+    private func reportText(for file: MediaFile) -> String {
+        if !file.report.isEmpty {
+            return file.report
+        }
+        return reportFormatter.report(for: file)
     }
 
     private func primaryWindow(fromReviewWindow reviewWindow: TimeWindow) -> TimeWindow {
