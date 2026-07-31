@@ -80,6 +80,15 @@ FFmpeg and FFprobe are bundled with the application, no additional software requ
 
 See CHANGELOG.md for complete release history.
 
+## Documentation
+
+Additional project documentation is available in the `Documentation` folder.
+
+- **Brand_Guidelines.md** — Official branding, visual identity, typography, color palette, icon usage, animation, and product design standards.
+- **DESIGN.md** — Technical architecture, application design, and implementation roadmap.
+- **CHANGELOG.md** — Version history and release notes.
+
+
 ## License
 
 Copyright © 2026.

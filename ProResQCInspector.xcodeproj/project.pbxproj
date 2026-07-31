@@ -30,7 +30,6 @@
 		74E4A66E30198D400000BC57 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		74E4A67030198DEE0000BC57 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 		74E4A6A9301A8CD80000BC57 /* DESIGN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DESIGN.md; sourceTree = "<group>"; };
-		74E4A6B1301AD0F10000BC57 /* Screenshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Screenshot.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -94,7 +93,6 @@
 		74C17AE13017EAF600B7C4E1 = {
 			isa = PBXGroup;
 			children = (
-				74E4A6B0301AD0BB0000BC57 /* Documentation */,
 				74E4A6A9301A8CD80000BC57 /* DESIGN.md */,
 				74E4A67030198DEE0000BC57 /* CHANGELOG.md */,
 				74E4A66E30198D400000BC57 /* README.md */,
@@ -116,14 +114,6 @@
 				74C17B053017EAF700B7C4E1 /* ProResQCInspectorUITests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		74E4A6B0301AD0BB0000BC57 /* Documentation */ = {
-			isa = PBXGroup;
-			children = (
-				74E4A6B1301AD0F10000BC57 /* Screenshot.png */,
-			);
-			path = Documentation;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -431,7 +421,7 @@
 				CODE_SIGN_ENTITLEMENTS = ProResQCInspector/ProResQCInspector.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ProResQCInspector/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -442,7 +432,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.5.0;
+				MARKETING_VERSION = 0.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -458,7 +448,7 @@
 				CODE_SIGN_ENTITLEMENTS = ProResQCInspector/ProResQCInspector.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"ProResQCInspector/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -469,7 +459,7 @@
 				);
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.5.0;
+				MARKETING_VERSION = 0.6.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
