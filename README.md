@@ -1,10 +1,12 @@
 # Media QC Inspector
 
+> **Validate. Inspect. Deliver.**
+
 Version 0.5.0
 
 Media QC Inspector is a native macOS application for validating Apple ProRes media files by detecting decoder errors, extracting technical metadata, identifying affected regions, and generating professional Technical Validation Reports for production workflows.
 
-Beginning with v0.5.0, Media QC Inspector is completely self-contained. FFmpeg and FFprobe are bundled with the application, so no additional software installation is required.
+Beginning with v0.5.0, Media QC Inspector is completely self-contained. FFmpeg and FFprobe are bundled with the application, eliminating the need for any additional software installation.
 
 ## Screenshot
 
