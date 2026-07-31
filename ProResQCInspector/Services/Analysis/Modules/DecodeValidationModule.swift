@@ -1,11 +1,3 @@
-//
-//  DecodeValidationModule.swift
-//  ProResQCInspector
-//
-//  Created by gelbda53 on 7/31/26.
-//
-
-
 import Foundation
 
 struct DecodeValidationModule: QCModule {
@@ -19,19 +11,43 @@ struct DecodeValidationModule: QCModule {
 
         let scanner = FFmpegScanner()
 
-        // Existing scanner logic
-        let report = try await scanner.scan(fileURL)
+        let validation = await scanner.validateFile(
+            fileURL,
+            progress: { _ in }
+        )
 
-        var findings: [QCFinding] = []
+        guard validation.errors.isEmpty else {
 
-        if report.result == .failed {
+            var findings: [QCFinding] = []
+
+            var reviewRange: ClosedRange<Double>?
+
+            if let duration = validation.duration {
+
+                let windows = await scanner.scanForBadWindows(
+                    file: fileURL,
+                    durationSeconds: duration,
+                    progress: { _ in }
+                )
+
+                if let first = windows.first {
+
+                    let reviewWindow = scanner.editorialReviewWindow(
+                        for: first,
+                        durationSeconds: duration
+                    )
+
+                    reviewRange = reviewWindow.start...reviewWindow.end
+                }
+            }
 
             findings.append(
                 QCFinding(
                     severity: .failed,
                     title: "Decoder Errors Detected",
-                    details: report.summary,
-                    recommendation: report.recommendedAction
+                    details: validation.errors.joined(separator: "\n"),
+                    recommendation: "Review the affected media section and replace it from the source master.",
+                    timeRange: reviewRange
                 )
             )
 
