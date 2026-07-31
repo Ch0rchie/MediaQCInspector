@@ -30,7 +30,6 @@
 		74E4A66E30198D400000BC57 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		74E4A67030198DEE0000BC57 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 		74E4A6A9301A8CD80000BC57 /* DESIGN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DESIGN.md; sourceTree = "<group>"; };
-		74E4A6AB301A991C0000BC57 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
 		74E4A6B1301AD0F10000BC57 /* Screenshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Screenshot.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -54,6 +53,11 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ProResQCInspectorUITests;
 			sourceTree = "<group>";
+		};
+		74CCB4A3301C3CFC00639C9E /* Scripts */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Scripts;
+			sourceTree = SOURCE_ROOT;
 		};
 		74F42C0E3019427D0098CB19 /* Design */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -91,7 +95,6 @@
 			isa = PBXGroup;
 			children = (
 				74E4A6B0301AD0BB0000BC57 /* Documentation */,
-				74E4A6AB301A991C0000BC57 /* .gitignore */,
 				74E4A6A9301A8CD80000BC57 /* DESIGN.md */,
 				74E4A67030198DEE0000BC57 /* CHANGELOG.md */,
 				74E4A66E30198D400000BC57 /* README.md */,
@@ -101,6 +104,7 @@
 				74C17B083017EAF700B7C4E1 /* ProResQCInspectorUITests */,
 				74C17AEB3017EAF600B7C4E1 /* Products */,
 				743C22C7301BE60C00AC0526 /* ThirdParty */,
+				74CCB4A3301C3CFC00639C9E /* Scripts */,
 			);
 			sourceTree = "<group>";
 		};
