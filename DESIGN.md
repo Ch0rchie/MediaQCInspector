@@ -1,6 +1,6 @@
 # Media QC Inspector Design Notes
 
-Version 0.4.0
+Version 0.5.0
 
 This document describes the design philosophy, user interface guidelines, and architectural decisions that define Media QC Inspector. It serves as a reference for maintaining a consistent user experience as the application evolves.
 
@@ -298,20 +298,36 @@ Guidelines:
 
 ---
 
+# Application Architecture
+
+Beginning with v0.5.0, Media QC Inspector is a fully self-contained macOS application.
+
+Standalone FFmpeg and FFprobe executables are bundled inside the application and located at runtime through the ToolLocator service.
+
+No external software installation is required.
+
+The analysis engine currently consists of:
+
+- ToolLocator validates that bundled analysis tools are available during application startup before media analysis begins
+- FFmpegScanner
+- ReportFormatter
+- PDFReportRenderer
+
+This architecture separates media analysis from the user interface, allowing future QC modules to be added without affecting the overall application workflow.
+
+---
+
 # Future Design Direction
 
 Future releases may include:
 
-- Bundled FFmpeg/FFprobe
-- User Preferences window
 - Additional QC modules
 - Batch reporting improvements
-- Print-friendly reports
-- Alternate report themes
+- User Preferences
 - Windows version
 - Shared cross-platform architecture
 
-Future enhancements should preserve the existing design philosophy and avoid increasing workflow complexity.
+Future enhancements should preserve the existing design philosophy while maintaining a simple production-focused workflow.
 
 ---
 

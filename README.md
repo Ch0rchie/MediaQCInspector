@@ -1,8 +1,10 @@
 # Media QC Inspector
 
-Version 0.4.0
+Version 0.5.0
 
 Media QC Inspector is a native macOS application for validating Apple ProRes media files by detecting decoder errors, extracting technical metadata, identifying affected regions, and generating professional Technical Validation Reports for production workflows.
+
+Beginning with v0.5.0, Media QC Inspector is completely self-contained. FFmpeg and FFprobe are bundled with the application, so no additional software installation is required.
 
 ## Screenshot
 
@@ -11,11 +13,13 @@ Media QC Inspector is a native macOS application for validating Apple ProRes med
 ## Features
 
 ### Analysis
-- FFmpeg-based ProRes decoder validation
+- Apple ProRes decoder validation
 - Technical metadata extraction
 - Automatic decoder error detection
 - Error localization
 - Editorial review window calculation
+- Self-contained analysis engine
+- No additional software installation is required
 
 ### Queue Management
 - Drag-and-drop queue
@@ -46,28 +50,29 @@ Media QC Inspector is a native macOS application for validating Apple ProRes med
 
 ## Installation
 
-1. Install FFmpeg and FFprobe.
-2. Launch Media QC Inspector.
-3. Drag one or more ProRes files into the queue.
-4. Click **Start** to begin validation.
+1. Download Media QC Inspector.
+2. Drag the application into the Applications folder.
+3. Launch Media QC Inspector.
+4. Drag one or more ProRes files into the queue.
+5. Click **Start** to begin validation.
+-No additional software installation is required.
 
 ## Requirements
 
-- macOS
-- Apple Silicon or Intel Mac
-- FFmpeg / FFprobe (bundled in a future release)
+- macOS 14 or later
+- Apple Silicon
+
+FFmpeg and FFprobe are bundled with the application, no additional software required
 
 ## Roadmap
 
-### v0.5
-- Bundle FFmpeg and FFprobe into the application
-- Self-contained application (no Homebrew dependency)
-- Simplified installation and distribution
-
-### Future
+### v0.6
 - Additional QC modules
+- Expanded media validation
 - Batch reporting improvements
 - User preferences
+
+### Future
 - Windows version (long-term)
 - Shared cross-platform architecture
 

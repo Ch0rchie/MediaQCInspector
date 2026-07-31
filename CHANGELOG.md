@@ -4,30 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## v0.3.0 — July 28, 2026
+## v0.5.0 — July 30, 2026
 
 ### Added
-- FFmpeg decoder validation engine
-- Metadata extraction
-- Technical Validation Report
-- Analysis date and time
-- Editorial review window generation
-- Queue management
-- Drag-and-drop media import
-- Copy Report functionality
+- Bundled standalone FFmpeg and FFprobe executables
+- Self-contained analysis engine
+- Startup validation of bundled analysis tools
+- Tool version reporting in the About window
 
-### Improved
-- PASS report formatting
-- FAIL report formatting
-- Report readability
-- Error localization accuracy
-- Queue interaction
-- Remove file workflow
+### Changed
+- Removed the runtime dependency on Homebrew-installed FFmpeg and FFprobe
+- Updated ToolLocator to resolve bundled executables
+- Simplified application installation and distribution
 
 ### Verified
-- Validated against benchmark ProRes files with no decode errors.
-- Validated against benchmark ProRes files containing known decode errors.
-- Verified error localization against benchmark timestamps.
+- Successfully validated on a clean macOS installation
+- Confirmed operation without external FFmpeg installation
+- Confirmed bundled standalone executables function correctly
+
 
 ## v0.4.0 — July 29, 2026
 
@@ -69,3 +63,29 @@ All notable changes to this project will be documented in this file.
 - Live queue updates
 - Progress calculation while queue changes
 - ETA updates while queue changes
+
+
+## v0.3.0 — July 28, 2026
+
+### Added
+- FFmpeg decoder validation engine
+- Metadata extraction
+- Technical Validation Report
+- Analysis date and time
+- Editorial review window generation
+- Queue management
+- Drag-and-drop media import
+- Copy Report functionality
+
+### Improved
+- PASS report formatting
+- FAIL report formatting
+- Report readability
+- Error localization accuracy
+- Queue interaction
+- Remove file workflow
+
+### Verified
+- Validated against benchmark ProRes files with no decode errors.
+- Validated against benchmark ProRes files containing known decode errors.
+- Verified error localization against benchmark timestamps.

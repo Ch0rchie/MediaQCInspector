@@ -34,9 +34,24 @@
 		74E4A6B1301AD0F10000BC57 /* Screenshot.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Screenshot.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		74CCB49C301C1FE000639C9E /* Exceptions for "ThirdParty" folder in "ProResQCInspector" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				FFmpeg_Homebrew_Backup/ffmpeg,
+				FFmpeg_Homebrew_Backup/ffprobe,
+				FFmpeg_Homebrew_Backup/VERSION,
+			);
+			target = 74C17AE93017EAF600B7C4E1 /* ProResQCInspector */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		743C22C7301BE60C00AC0526 /* ThirdParty */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				74CCB49C301C1FE000639C9E /* Exceptions for "ThirdParty" folder in "ProResQCInspector" target */,
+			);
 			path = ThirdParty;
 			sourceTree = "<group>";
 		};
@@ -427,7 +442,7 @@
 				CODE_SIGN_ENTITLEMENTS = ProResQCInspector/ProResQCInspector.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"ProResQCInspector/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -436,6 +451,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
@@ -453,7 +469,7 @@
 				CODE_SIGN_ENTITLEMENTS = ProResQCInspector/ProResQCInspector.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"ProResQCInspector/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -462,6 +478,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.5.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ch0rchie.ProResQCInspector;
