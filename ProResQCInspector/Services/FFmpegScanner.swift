@@ -186,6 +186,47 @@ final class FFmpegScanner: @unchecked Sendable {
         return mergeWindows(normalized)
     }
 
+    func detectFreezeFrames(
+        file: URL,
+        progress: @escaping @Sendable (Double) -> Void
+    ) async -> [TimeWindow] {
+        let didStartAccessing = file.startAccessingSecurityScopedResource()
+        defer {
+            if didStartAccessing {
+                file.stopAccessingSecurityScopedResource()
+            }
+        }
+
+        guard !isCancelled() else { return [] }
+
+        let duration = await assetDurationSeconds(AVURLAsset(url: file))
+        guard duration > 0 else {
+            progress(1)
+            return []
+        }
+
+        progress(0)
+
+        let output = runFFmpeg(arguments: [
+            "-hide_banner",
+            "-nostats",
+            "-v", "info",
+            "-i", file.path,
+            "-vf", "freezedetect=n=-60dB:d=1.0",
+            "-an",
+            "-f", "null",
+            "-"
+        ])
+
+        if isCancelled() {
+            return []
+        }
+
+        let windows = parseFreezeDetectWindows(from: output, durationSeconds: duration)
+        progress(1)
+        return mergeWindows(windows)
+    }
+
     func editorialReviewWindow(for primaryWindow: TimeWindow, durationSeconds: Double) -> TimeWindow {
         let start = max(0, primaryWindow.start - 1.0)
         let end = min(durationSeconds, primaryWindow.end + 0.5)
@@ -438,6 +479,62 @@ final class FFmpegScanner: @unchecked Sendable {
                 needles.contains(where: { line.contains($0) })
             }
             .count
+    }
+
+    private func parseFreezeDetectWindows(from output: String, durationSeconds: Double) -> [TimeWindow] {
+        var windows: [TimeWindow] = []
+        var currentStart: Double?
+
+        for rawLine in output.split(whereSeparator: \.isNewline) {
+            let line = String(rawLine)
+
+            if let start = Self.freezeValue(in: line, key: "freeze_start") {
+                currentStart = start
+            }
+
+            if let end = Self.freezeValue(in: line, key: "freeze_end") {
+                if let start = currentStart {
+                    windows.append(
+                        normalizeFreezeWindow(
+                            TimeWindow(start: start, end: end),
+                            durationSeconds: durationSeconds
+                        )
+                    )
+                }
+                currentStart = nil
+            }
+        }
+
+        if let start = currentStart {
+            windows.append(
+                normalizeFreezeWindow(
+                    TimeWindow(start: start, end: durationSeconds),
+                    durationSeconds: durationSeconds
+                )
+            )
+        }
+
+        return mergeWindows(windows)
+    }
+
+    private func normalizeFreezeWindow(_ window: TimeWindow, durationSeconds: Double) -> TimeWindow {
+        let safeStart = max(0, min(window.start, durationSeconds))
+        let safeEnd = max(safeStart, min(window.end, durationSeconds))
+        return TimeWindow(start: safeStart, end: safeEnd)
+    }
+
+    private static func freezeValue(in line: String, key: String) -> Double? {
+        let pattern = "\(key):\\s*([0-9]+(?:\\.[0-9]+)?)"
+        guard
+            let regex = try? NSRegularExpression(pattern: pattern),
+            let match = regex.firstMatch(in: line, range: NSRange(line.startIndex..., in: line)),
+            match.numberOfRanges > 1,
+            let range = Range(match.range(at: 1), in: line)
+        else {
+            return nil
+        }
+
+        return Double(line[range])
     }
 
     private func formatDuration(_ seconds: Double) -> String {

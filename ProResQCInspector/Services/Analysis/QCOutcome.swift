@@ -47,9 +47,14 @@ struct QCFinding: Identifiable, Codable, Hashable, Sendable {
 
 struct QCAnalysisContext: Sendable, Hashable {
     var deliveryProfileName: String? = nil
+    var deliveryProfile: DeliveryProfile? = nil
 
-    init(deliveryProfileName: String? = nil) {
+    init(
+        deliveryProfileName: String? = nil,
+        deliveryProfile: DeliveryProfile? = nil
+    ) {
         self.deliveryProfileName = deliveryProfileName
+        self.deliveryProfile = deliveryProfile
     }
 }
 
