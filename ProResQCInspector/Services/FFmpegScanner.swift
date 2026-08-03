@@ -100,7 +100,6 @@ final class FFmpegScanner: @unchecked Sendable {
 
         progress(0)
 
-        // Smaller chunks = more frequent updates during the validation pass.
         let step = max(5.0, min(60.0, duration / 60.0))
         let windows = scanRangeWithSeek(
             file: url,

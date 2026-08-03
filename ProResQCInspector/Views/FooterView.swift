@@ -1,225 +1,149 @@
 import SwiftUI
 
 struct FooterView: View {
+
     @ObservedObject var model: QCModel
-    @State private var showingStopConfirmation = false
-    @State private var showingRemoveConfirmation = false
-    @State private var showingClearConfirmation = false
+    @State private var showClearConfirmation = false
+    @State private var showRemoveConfirmation = false
 
     var body: some View {
-        HStack(alignment: .center, spacing: 10) {
-            if model.isBusy {
-                Button("Stop") {
-                    showingStopConfirmation = true
+        TimelineView(.periodic(from: .now, by: 1.0)) { timeline in
+            footerBody(currentDate: timeline.date)
+        }
+    }
+
+    @ViewBuilder
+    private func footerBody(currentDate: Date) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 10) {
+                    Text(model.statusText)
+                        .font(.headline)
+
+                    Spacer(minLength: 8)
+
+                    Text(liveElapsedText(at: currentDate))
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(.secondary)
+
+                    Text(liveRemainingText(at: currentDate))
+                        .font(.subheadline.monospacedDigit())
+                        .foregroundStyle(.secondary)
                 }
-                .keyboardShortcut(.cancelAction)
-                .buttonStyle(.borderedProminent)
-                .tint(.red)
-            } else {
-                Button(model.primaryActionTitle) {
+
+                ProgressView(value: model.progress)
+                    .progressViewStyle(.linear)
+            }
+
+            Spacer(minLength: 12)
+
+            Button(model.isBusy ? "STOP" : "Analyze") {
+                if model.isBusy {
+                    model.stopAnalysis()
+                } else {
                     model.analyze()
                 }
-                .keyboardShortcut(.defaultAction)
-                .buttonStyle(.borderedProminent)
-                .disabled(!model.canAnalyzeOrResume)
             }
+            .buttonStyle(.borderedProminent)
 
             Button("Remove") {
-                handleRemoveTapped()
+                showRemoveConfirmation = true
             }
             .buttonStyle(.bordered)
-            .disabled(!model.canRemoveSelectedFile)
 
             Button("Clear") {
-                handleClearTapped()
+                showClearConfirmation = true
             }
             .buttonStyle(.bordered)
-            .disabled(model.files.isEmpty || model.isBusy)
-
-            Spacer(minLength: 0)
-
-            if model.isBusy {
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 4) {
-                        Text("Status:")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.secondary)
-
-                        Text(model.statusText)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.tail)
-                    }
-
-                    HStack(alignment: .center, spacing: 6) {
-                        Text("Queue")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(.secondary)
-
-                        ProgressView(value: model.progress)
-                            .frame(width: 175)
-
-                        Text("\(Int((model.progress * 100).rounded()))%")
-                            .font(.caption2.monospacedDigit())
-                            .foregroundStyle(.secondary)
-                    }
-
-                    HStack(spacing: 18) {
-                        HStack(spacing: 4) {
-                            Text("Elapsed:")
-                                .font(.caption2.weight(.semibold))
-                                .foregroundStyle(.secondary)
-
-                            Text(model.elapsedText)
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-
-                        HStack(spacing: 4) {
-                            Text("Remaining:")
-                                .font(.caption2.weight(.semibold))
-                                .foregroundStyle(.secondary)
-
-                            Text(remainingValue)
-                                .font(.caption.monospacedDigit())
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                }
-                .frame(maxWidth: 350, alignment: .leading)
-            } else {
-                Text(model.statusText)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
         }
-        .padding(.top, 6)
-        .padding(.horizontal, 4)
-        .padding(.bottom, 4)
-        .frame(height: 74)
-        .confirmationDialog(
-            "Stop analysis?",
-            isPresented: $showingStopConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("Stop", role: .destructive) {
-                model.stopAnalysis()
-            }
-            Button("Cancel", role: .cancel) { }
-        } message: {
-            Text("This will stop the current file and pause the queue. You can resume later.")
-        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .confirmationDialog(
             removeDialogTitle,
-            isPresented: $showingRemoveConfirmation,
+            isPresented: $showRemoveConfirmation,
             titleVisibility: .visible
         ) {
-            if model.shouldConfirmStopAndRemoveSelectedFile {
-                Button("Stop & Remove", role: .destructive) {
-                    model.removeSelectedFile()
-                }
-            } else {
-                Button("Remove", role: .destructive) {
-                    model.removeSelectedFile()
-                }
+            Button("Remove", role: .destructive) {
+                model.removeSelectedFile()
             }
-
             Button("Cancel", role: .cancel) { }
         } message: {
             Text(removeDialogMessage)
         }
         .confirmationDialog(
             clearDialogTitle,
-            isPresented: $showingClearConfirmation,
+            isPresented: $showClearConfirmation,
             titleVisibility: .visible
         ) {
-            Button("Clear All", role: .destructive) {
+            Button("Clear", role: .destructive) {
                 model.clear()
             }
-
             Button("Cancel", role: .cancel) { }
         } message: {
             Text(clearDialogMessage)
         }
     }
 
-    private var remainingValue: String {
-        model.etaText.replacingOccurrences(of: "ETA ", with: "")
-    }
-
-    private var selectedFileHasResults: Bool {
-        guard let file = model.selectedFile else { return false }
-        return file.analyzedAt != nil ||
-               !file.report.isEmpty ||
-               file.result != MediaFile.AnalysisResult.notYetAnalyzed.rawValue
-    }
-
-    private var hasAnyAnalyzedResults: Bool {
-        model.files.contains { file in
-            file.analyzedAt != nil ||
-            !file.report.isEmpty ||
-            file.result != MediaFile.AnalysisResult.notYetAnalyzed.rawValue
-        }
-    }
-
-    private var shouldConfirmClear: Bool {
-        if model.files.count > 1 {
-            return true
+    private func liveElapsedText(at currentDate: Date) -> String {
+        print("isBusy:", model.isBusy, "start:", model.analysisStartedAt as Any)
+        guard model.isBusy, let start = model.analysisStartedAt else {
+            return model.elapsedText
         }
 
-        return hasAnyAnalyzedResults
+        return Self.formatDuration(currentDate.timeIntervalSince(start))
+    }
+
+    private func liveRemainingText(at currentDate: Date) -> String {
+        guard model.isBusy, let start = model.analysisStartedAt else {
+            return model.remainingText
+        }
+
+        guard model.progress > 0.01 else {
+            return "--:--"
+        }
+
+        let elapsed = currentDate.timeIntervalSince(start)
+        let estimatedTotal = elapsed / model.progress
+        let remaining = max(0, estimatedTotal - elapsed)
+        return Self.formatDuration(remaining)
     }
 
     private var removeDialogTitle: String {
-        if model.shouldConfirmStopAndRemoveSelectedFile {
-            return "Stop and remove this file?"
-        } else if selectedFileHasResults {
-            return "Remove analyzed file?"
+        if model.isBusy {
+            return "Stop and remove file?"
         } else {
             return "Remove selected file?"
         }
     }
 
     private var removeDialogMessage: String {
-        if model.shouldConfirmStopAndRemoveSelectedFile {
-            return "This file is currently being analyzed. Stopping now will remove it from the queue and continue with the next file."
-        } else if selectedFileHasResults {
-            return "This will remove the selected file and its analysis results from the queue. This action cannot be undone."
+        if model.isBusy {
+            return "This will stop the current analysis and remove the selected file from the queue."
         } else {
-            return "Remove the selected file from the queue?"
+            return "This will remove the selected file from the queue."
         }
     }
 
     private var clearDialogTitle: String {
-        if hasAnyAnalyzedResults {
-            return "Clear queue and results?"
+        if model.isBusy {
+            return "Stop and clear queue?"
         } else {
             return "Clear queue?"
         }
     }
 
     private var clearDialogMessage: String {
-        if hasAnyAnalyzedResults {
-            return "This will remove all files and analysis results from the queue. This action cannot be undone."
+        if model.isBusy {
+            return "This will stop the current analysis and clear the queue."
         } else {
-            return "This will remove \(model.files.count) files from the queue. This action cannot be undone."
+            return "This will remove all files from the queue. This action cannot be undone."
         }
     }
 
-    private func handleRemoveTapped() {
-        if model.shouldConfirmStopAndRemoveSelectedFile || selectedFileHasResults {
-            showingRemoveConfirmation = true
-        } else {
-            model.removeSelectedFile()
-        }
-    }
-
-    private func handleClearTapped() {
-        if shouldConfirmClear {
-            showingClearConfirmation = true
-        } else {
-            model.clear()
-        }
+    private static func formatDuration(_ seconds: TimeInterval) -> String {
+        let totalSeconds = max(0, Int(seconds.rounded()))
+        let minutes = totalSeconds / 60
+        let remaining = totalSeconds % 60
+        return String(format: "%02d:%02d", minutes, remaining)
     }
 }

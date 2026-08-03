@@ -15,7 +15,7 @@ struct ContentView: View {
                     .frame(minWidth: 480, idealWidth: 620, maxWidth: .infinity, maxHeight: .infinity)
 
                 DetailPanelView(model: model)
-                    .frame(minWidth: 600, idealWidth: 860, maxWidth: .infinity, maxHeight: .infinity)
+                    .frame(minWidth: 520, idealWidth: 760, maxWidth: .infinity, maxHeight: .infinity)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 

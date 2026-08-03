@@ -53,33 +53,59 @@ struct QCEngineResult: Codable, Hashable, Sendable {
     }
 }
 
-struct QCEngine {
-
+struct QCEngine: Sendable {
+    let scanner: FFmpegScanner
     let modules: [any QCModule]
 
     init(
-        modules: [any QCModule] = [
-            DecodeValidationModule(),
-            MetadataValidationModule(),
-            FreezeFrameModule()
-        ]
+        scanner: FFmpegScanner = FFmpegScanner(),
+        modules: [any QCModule]? = nil
     ) {
-        self.modules = modules
+        self.scanner = scanner
+        self.modules = modules ?? [
+            DecodeValidationModule(scanner: scanner),
+            MetadataValidationModule(),
+            FreezeFrameModule(scanner: scanner)
+        ]
     }
 
     func analyze(
         fileURL: URL,
-        context: QCAnalysisContext = QCAnalysisContext()
+        context: QCAnalysisContext = QCAnalysisContext(),
+        progressHandler: @escaping @Sendable (Double) -> Void = { _ in },
+        statusHandler: @escaping @Sendable (String) -> Void = { _ in }
     ) async throws -> QCEngineResult {
 
+        let totalModules = max(modules.count, 1)
         var moduleResults: [QCModuleResult] = []
         moduleResults.reserveCapacity(modules.count)
 
-        for module in modules {
+        progressHandler(0)
+
+        for (index, module) in modules.enumerated() {
+            try Task.checkCancellation()
+
+            let moduleStart = Double(index) / Double(totalModules)
+            let moduleSpan = 1.0 / Double(totalModules)
+
+            let moduleContext = QCAnalysisContext(
+                deliveryProfileName: context.deliveryProfileName,
+                deliveryProfile: context.deliveryProfile,
+                progressHandler: { moduleProgress in
+                    let clamped = max(0, min(1, moduleProgress))
+                    progressHandler(min(1, moduleStart + (clamped * moduleSpan)))
+                },
+                statusHandler: { status in
+                    statusHandler(status)
+                }
+            )
+
+            statusHandler(module.name)
+
             do {
                 let result = try await module.analyze(
                     fileURL: fileURL,
-                    context: context
+                    context: moduleContext
                 )
                 moduleResults.append(result)
             } catch {
@@ -90,7 +116,11 @@ struct QCEngine {
                     )
                 )
             }
+
+            progressHandler(min(1, moduleStart + moduleSpan))
         }
+
+        progressHandler(1)
 
         return QCEngineResult(
             fileURL: fileURL,
@@ -100,14 +130,20 @@ struct QCEngine {
 
     func run(
         fileURL: URL,
-        context: QCAnalysisContext = QCAnalysisContext()
+        context: QCAnalysisContext = QCAnalysisContext(),
+        progressHandler: @escaping @Sendable (Double) -> Void = { _ in },
+        statusHandler: @escaping @Sendable (String) -> Void = { _ in }
     ) async throws -> QCEngineResult {
-        try await analyze(fileURL: fileURL, context: context)
+        try await analyze(
+            fileURL: fileURL,
+            context: context,
+            progressHandler: progressHandler,
+            statusHandler: statusHandler
+        )
     }
 }
 
 private extension QCEngine {
-
     static func failedResult(
         moduleName: String,
         error: Error

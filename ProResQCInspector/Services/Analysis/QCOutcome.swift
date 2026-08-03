@@ -5,7 +5,6 @@
 //  Created by gelbda53 on 7/31/26.
 //
 
-
 import Foundation
 
 enum QCOutcome: String, Codable, CaseIterable, Sendable {
@@ -45,16 +44,22 @@ struct QCFinding: Identifiable, Codable, Hashable, Sendable {
     }
 }
 
-struct QCAnalysisContext: Sendable, Hashable {
+struct QCAnalysisContext: Sendable {
     var deliveryProfileName: String? = nil
     var deliveryProfile: DeliveryProfile? = nil
+    var progressHandler: (@Sendable (Double) -> Void)? = nil
+    var statusHandler: (@Sendable (String) -> Void)? = nil
 
     init(
         deliveryProfileName: String? = nil,
-        deliveryProfile: DeliveryProfile? = nil
+        deliveryProfile: DeliveryProfile? = nil,
+        progressHandler: (@Sendable (Double) -> Void)? = nil,
+        statusHandler: (@Sendable (String) -> Void)? = nil
     ) {
         self.deliveryProfileName = deliveryProfileName
         self.deliveryProfile = deliveryProfile
+        self.progressHandler = progressHandler
+        self.statusHandler = statusHandler
     }
 }
 
