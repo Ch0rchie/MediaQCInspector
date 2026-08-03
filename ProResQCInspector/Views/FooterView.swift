@@ -85,7 +85,6 @@ struct FooterView: View {
     }
 
     private func liveElapsedText(at currentDate: Date) -> String {
-        print("isBusy:", model.isBusy, "start:", model.analysisStartedAt as Any)
         guard model.isBusy, let start = model.analysisStartedAt else {
             return model.elapsedText
         }

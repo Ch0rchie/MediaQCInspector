@@ -15,6 +15,10 @@ struct ReportFormatter {
         "\(formatTimecode(window.start))–\(formatTimecode(window.end))"
     }
 
+    func formatWindow(_ range: ClosedRange<Double>) -> String {
+        formatWindow(TimeWindow(start: range.lowerBound, end: range.upperBound))
+    }
+
     func analysisDateString(for analyzedAt: Date?) -> String {
         guard let analyzedAt else { return "—" }
         return analysisDateFormatter.string(from: analyzedAt)
@@ -26,6 +30,14 @@ struct ReportFormatter {
     }
 
     func report(for file: MediaFile) -> String {
+        report(for: file, engineResult: nil)
+    }
+
+    func report(for file: MediaFile, engineResult: QCEngineResult? = nil) -> String {
+        if let engineResult {
+            return modularReport(for: file, engineResult: engineResult)
+        }
+
         switch file.result {
         case "Passed":
             return passedReport(for: file)
@@ -39,77 +51,150 @@ struct ReportFormatter {
     }
 
     func attributedReport(for file: MediaFile) -> NSAttributedString {
-        let result = NSMutableAttributedString()
-
-        appendTitle("Technical Validation Report", to: result)
-        appendDivider(to: result)
-
-        appendLabelValue("File:", file.url.lastPathComponent, valueColor: .labelColor, to: result)
-
-        if file.analyzedAt != nil {
-            appendLabelValue("Analysis Date:", analysisDateString(for: file.analyzedAt), valueColor: .labelColor, to: result)
-            appendLabelValue("Analysis Time:", analysisTimeString(for: file.analyzedAt), valueColor: .labelColor, to: result)
-        }
-
-        appendDivider(to: result)
-
-        switch file.result {
-        case "Passed":
-            appendSectionHeader("Summary", to: result)
-            appendParagraph("Technical validation completed successfully.", to: result)
-            appendLabelValue("Result:", "PASS", valueFont: .boldSystemFont(ofSize: 12), valueColor: .systemGreen, to: result)
-            appendParagraph("No video decode errors were detected.", to: result)
-
-        case "Errors Found":
-            let primaryRegion = file.region == "—" ? "Unavailable" : file.region
-            let reviewWindow = file.reviewWindow == "—" ? primaryRegion : file.reviewWindow
-
-            appendSectionHeader("Summary", to: result)
-            appendParagraph("Technical validation identified one or more video decode errors.", to: result)
-            appendLabelValue("Result:", "FAIL", valueFont: .boldSystemFont(ofSize: 12), valueColor: .systemRed, to: result)
-            appendParagraph("Video decode errors were detected.", to: result)
-
-            appendDivider(to: result)
-
-            appendSectionHeader("Findings", to: result)
-            appendParagraph("Reported decoder errors:", to: result)
-            appendBullets(
-                [
-                    "invalid frame header",
-                    "Error submitting packet to decoder: Invalid data found when processing input"
-                ],
-                to: result
-            )
-
-            appendDivider(to: result)
-
-            appendSectionHeader("Affected Region", to: result)
-            appendLabelValue("Primary error region:", primaryRegion, valueColor: .labelColor, to: result)
-            appendParagraph("For editorial purposes, review approximately:", to: result)
-            appendParagraph(reviewWindow, emphasis: true, to: result)
-            appendParagraph("to ensure the entire affected section is replaced or regenerated.", to: result)
-
-            appendDivider(to: result)
-
-            appendSectionHeader("Recommended Action", to: result)
-            appendParagraph(
-                "Please review the original timeline and regenerate this portion of the ProRes master, or provide a newly exported master from the source project. After replacement, the file should be analyzed again to confirm that no ProRes decode errors remain.",
-                to: result
-            )
-
-        case "Metadata Failed":
-            appendSectionHeader("Summary", to: result)
-            appendParagraph("Metadata extraction failed.", to: result)
-            appendLabelValue("Result:", "METADATA FAILED", valueFont: .boldSystemFont(ofSize: 12), valueColor: .systemOrange, to: result)
-            appendParagraph("The file could not be fully analyzed.", to: result)
-
-        default:
-            appendSectionHeader("Summary", to: result)
-            appendParagraph("The file has not been analyzed yet.", to: result)
-        }
-
-        return result
+        attributedReport(for: file, engineResult: nil)
     }
+
+    func attributedReport(for file: MediaFile, engineResult: QCEngineResult? = nil) -> NSAttributedString {
+        let text = report(for: file, engineResult: engineResult)
+        return styledAttributedReport(from: text)
+    }
+
+    // MARK: - Modular report
+
+    private func modularReport(for file: MediaFile, engineResult: QCEngineResult) -> String {
+        let problemModules = engineResult.moduleResults.filter { $0.outcome != .passed }
+
+        var lines = reportHeader(for: file)
+        lines += [
+            "SUMMARY",
+            "Result: \(outcomeLabel(for: engineResult.overallOutcome))",
+            summarySentence(for: engineResult.overallOutcome)
+        ]
+
+        lines += [
+            "",
+            String(repeating: "─", count: 42),
+            "VALIDATION RESULTS"
+        ]
+
+        for moduleResult in engineResult.moduleResults {
+            lines.append("- \(moduleResult.moduleName) (\(outcomeLabel(for: moduleResult.outcome)))")
+        }
+
+        lines += [
+            "",
+            String(repeating: "─", count: 42),
+            "QC FINDINGS"
+        ]
+
+        if problemModules.isEmpty {
+            lines.append("None")
+            return lines.joined(separator: "\n")
+        }
+
+        for moduleResult in problemModules {
+            lines.append("- \(moduleResult.moduleName) (\(outcomeLabel(for: moduleResult.outcome)))")
+        }
+
+        for moduleResult in problemModules {
+            lines += [
+                "",
+                moduleResult.moduleName,
+                "Result: \(outcomeLabel(for: moduleResult.outcome))",
+                moduleSummarySentence(for: moduleResult.moduleName, outcome: moduleResult.outcome)
+            ]
+
+            if moduleResult.findings.isEmpty {
+                lines.append("No findings were reported.")
+                continue
+            }
+
+            lines.append("Findings:")
+
+            for finding in moduleResult.findings {
+                lines.append("- \(finding.title)")
+
+                let trimmedDetails = finding.details.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmedDetails.isEmpty {
+                    lines.append("  Details: \(trimmedDetails)")
+                }
+
+                if let timeRange = finding.timeRange {
+                    lines.append("  Affected Region: \(formatWindow(timeRange))")
+                }
+
+                let recommendation = finding.recommendation ?? defaultRecommendation(for: moduleResult.moduleName)
+                if let recommendation {
+                    lines.append("  Recommended Action: \(recommendation)")
+                }
+            }
+        }
+
+        return lines.joined(separator: "\n")
+    }
+
+    private func summarySentence(for outcome: QCOutcome) -> String {
+        switch outcome {
+        case .passed:
+            return "Technical validation completed successfully."
+        case .warning:
+            return "Technical validation completed with warnings."
+        case .failed:
+            return "Technical validation completed with one or more QC findings requiring review."
+        }
+    }
+
+    private func moduleSummarySentence(for moduleName: String, outcome: QCOutcome) -> String {
+        let lower = moduleName.lowercased()
+
+        switch outcome {
+        case .passed:
+            return "No findings were reported."
+        case .warning:
+            return "\(moduleName) identified a potential issue."
+        case .failed:
+            if lower.contains("decode") {
+                return "Technical validation identified one or more video decode errors."
+            } else if lower.contains("freeze") {
+                return "Freeze frame detection identified one or more freeze frames."
+            } else if lower.contains("black") {
+                return "Black frame detection identified one or more black frames."
+            } else if lower.contains("metadata") {
+                return "Metadata validation identified one or more metadata issues."
+            } else {
+                return "\(moduleName) identified one or more issues."
+            }
+        }
+    }
+
+    private func outcomeLabel(for outcome: QCOutcome) -> String {
+        switch outcome {
+        case .passed:
+            return "PASS"
+        case .warning:
+            return "WARNING"
+        case .failed:
+            return "FAIL"
+        }
+    }
+
+    private func defaultRecommendation(for moduleName: String) -> String? {
+        let lower = moduleName.lowercased()
+
+        if lower.contains("decode") {
+            return "Please review the original timeline and regenerate this portion of the ProRes master, or provide a newly exported master from the source project. After replacement, the file should be analyzed again to confirm that no ProRes decode errors remain."
+        } else if lower.contains("freeze") {
+            return "Review the affected section to determine whether the freeze is intentional. If unintended, regenerate the affected portion from the source timeline before delivery."
+        } else if lower.contains("black") {
+            return "Review the affected section to determine whether the black segment is intentional. If not, regenerate or replace the affected portion before delivery."
+        } else if lower.contains("metadata") {
+            return "Verify the source media metadata, correct the source export if needed, and analyze the file again."
+        } else {
+            return "Review the affected section and regenerate or replace it before analyzing again."
+        }
+    }
+
+    // MARK: - Legacy report path
 
     private func reportHeader(for file: MediaFile) -> [String] {
         var lines: [String] = [
@@ -132,9 +217,9 @@ struct ReportFormatter {
     private func passedReport(for file: MediaFile) -> String {
         var lines = reportHeader(for: file)
         lines += [
-            "Summary",
-            "Technical validation completed successfully.",
+            "SUMMARY",
             "Result: PASS",
+            "Technical validation completed successfully.",
             "No video decode errors were detected."
         ]
         return lines.joined(separator: "\n")
@@ -146,12 +231,16 @@ struct ReportFormatter {
 
         var lines = reportHeader(for: file)
         lines += [
-            "Summary",
-            "Technical validation identified one or more video decode errors.",
+            "SUMMARY",
             "Result: FAIL",
+            "Technical validation identified one or more video decode errors.",
             "",
-            "Findings",
-            "Reported decoder errors:",
+            "QC FINDINGS",
+            "",
+            "Decode Validation",
+            "Result: FAIL",
+            "Technical validation identified one or more video decode errors.",
+            "Findings:",
             "- invalid frame header",
             "- Error submitting packet to decoder: Invalid data found when processing input",
             "",
@@ -169,9 +258,9 @@ struct ReportFormatter {
     private func metadataFailedReport(for file: MediaFile) -> String {
         var lines = reportHeader(for: file)
         lines += [
-            "Summary",
-            "Metadata extraction failed.",
+            "SUMMARY",
             "Result: METADATA FAILED",
+            "Metadata extraction failed.",
             "The file could not be fully analyzed."
         ]
         return lines.joined(separator: "\n")
@@ -180,11 +269,13 @@ struct ReportFormatter {
     private func pendingReport(for file: MediaFile) -> String {
         var lines = reportHeader(for: file)
         lines += [
-            "Summary",
+            "SUMMARY",
             "The file has not been analyzed yet."
         ]
         return lines.joined(separator: "\n")
     }
+
+    // MARK: - Dates / Timecodes
 
     private let analysisDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -213,114 +304,99 @@ struct ReportFormatter {
         return String(format: "%02d:%02d:%02d.%d", hours, minutes, wholeSeconds, tenths)
     }
 
-    // MARK: - Rich Text helpers
+    // MARK: - Attributed formatting
 
-    private func appendTitle(_ text: String, to result: NSMutableAttributedString) {
-        appendStyledLine(
-            text,
-            font: .boldSystemFont(ofSize: 18),
-            color: .labelColor,
-            spacingAfter: 6,
-            to: result
-        )
-    }
+    private func styledAttributedReport(from text: String) -> NSAttributedString {
+        let result = NSMutableAttributedString()
+        let lines = text.components(separatedBy: .newlines)
 
-    private func appendSectionHeader(_ text: String, to result: NSMutableAttributedString) {
-        appendStyledLine(
-            text,
-            font: .boldSystemFont(ofSize: 13),
-            color: .labelColor,
-            spacingAfter: 4,
-            to: result
-        )
-    }
+        for (index, rawLine) in lines.enumerated() {
+            let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+            let nextLine = index + 1 < lines.count ? lines[index + 1].trimmingCharacters(in: .whitespacesAndNewlines) : nil
 
-    private func appendParagraph(_ text: String, emphasis: Bool = false, to result: NSMutableAttributedString) {
-        appendStyledLine(
-            text,
-            font: emphasis ? .boldSystemFont(ofSize: 12) : .systemFont(ofSize: 12),
-            color: .labelColor,
-            spacingAfter: 4,
-            to: result
-        )
-    }
+            if line.isEmpty {
+                result.append(NSAttributedString(string: "\n"))
+                continue
+            }
 
-    private func appendLabelValue(
-        _ label: String,
-        _ value: String,
-        valueFont: NSFont = .systemFont(ofSize: 12),
-        valueColor: NSColor = .labelColor,
-        to result: NSMutableAttributedString
-    ) {
-        let line = NSMutableAttributedString(
-            string: label,
-            attributes: [
-                .font: NSFont.boldSystemFont(ofSize: 12),
-                .foregroundColor: NSColor.secondaryLabelColor
-            ]
-        )
+            let isTitle = line == "Technical Validation Report"
+            let isKnownSectionHeader = [
+                "SUMMARY",
+                "VALIDATION RESULTS",
+                "QC FINDINGS",
+                "Findings:",
+                "Affected Region",
+                "Recommended Action"
+            ].contains(line)
 
-        line.append(NSAttributedString(string: " ", attributes: [
-            .font: NSFont.systemFont(ofSize: 12),
-            .foregroundColor: NSColor.labelColor
-        ]))
+            let isModuleHeader = !line.contains(":")
+                && !line.hasPrefix("-")
+                && !line.hasPrefix("•")
+                && nextLine?.hasPrefix("Result:") == true
 
-        line.append(NSAttributedString(string: value, attributes: [
-            .font: valueFont,
-            .foregroundColor: valueColor
-        ]))
+            let isResultLine = line.hasPrefix("Result:")
+            let isLabelLine = line.hasPrefix("File:")
+                || line.hasPrefix("Analysis Date:")
+                || line.hasPrefix("Analysis Time:")
+                || line.hasPrefix("Primary error region:")
+                || line.hasPrefix("Editorial review window:")
+                || line.hasPrefix("Details:")
+                || line.hasPrefix("Affected Region:")
+                || line.hasPrefix("Recommended Action:")
+                || line.hasPrefix("Modules Requiring Attention:")
+                || line.hasPrefix("Modules Evaluated:")
 
-        appendAttributedLine(line, spacingAfter: 4, to: result)
-    }
+            let isBullet = line.hasPrefix("- ") || line.hasPrefix("• ")
 
-    private func appendBullets(_ items: [String], to result: NSMutableAttributedString) {
-        for item in items {
-            appendStyledLine(
-                "• \(item)",
-                font: .systemFont(ofSize: 12),
-                color: .labelColor,
-                spacingAfter: 2,
-                to: result
+            let font: NSFont
+            let color: NSColor
+
+            if isTitle {
+                font = .boldSystemFont(ofSize: 18)
+                color = .labelColor
+            } else if isKnownSectionHeader || isModuleHeader {
+                font = .boldSystemFont(ofSize: 13)
+                color = .labelColor
+            } else if isResultLine {
+                font = .boldSystemFont(ofSize: 12)
+                if line.contains("PASS") {
+                    color = .systemGreen
+                } else if line.contains("FAIL") {
+                    color = .systemRed
+                } else if line.contains("WARNING") {
+                    color = .systemOrange
+                } else {
+                    color = .labelColor
+                }
+            } else if isLabelLine {
+                font = .boldSystemFont(ofSize: 12)
+                color = .secondaryLabelColor
+            } else if isBullet {
+                font = .systemFont(ofSize: 12)
+                color = .labelColor
+            } else {
+                font = .systemFont(ofSize: 12)
+                color = .labelColor
+            }
+
+            let paragraphStyle = NSMutableParagraphStyle()
+            paragraphStyle.paragraphSpacing = isTitle ? 6 : 4
+            paragraphStyle.lineSpacing = 1
+            paragraphStyle.alignment = .left
+
+            let attributedLine = NSAttributedString(
+                string: line,
+                attributes: [
+                    .font: font,
+                    .foregroundColor: color,
+                    .paragraphStyle: paragraphStyle
+                ]
             )
+
+            result.append(attributedLine)
+            result.append(NSAttributedString(string: "\n"))
         }
-    }
 
-    private func appendDivider(to result: NSMutableAttributedString) {
-        appendStyledLine(
-            String(repeating: "─", count: 42),
-            font: .systemFont(ofSize: 10),
-            color: .separatorColor,
-            spacingAfter: 6,
-            to: result
-        )
-    }
-
-    private func appendStyledLine(
-        _ text: String,
-        font: NSFont,
-        color: NSColor,
-        spacingAfter: CGFloat,
-        to result: NSMutableAttributedString
-    ) {
-        let line = NSMutableAttributedString(string: text, attributes: [
-            .font: font,
-            .foregroundColor: color
-        ])
-        appendAttributedLine(line, spacingAfter: spacingAfter, to: result)
-    }
-
-    private func appendAttributedLine(
-        _ line: NSMutableAttributedString,
-        spacingAfter: CGFloat,
-        to result: NSMutableAttributedString
-    ) {
-        let paragraphStyle = NSMutableParagraphStyle()
-        paragraphStyle.paragraphSpacing = spacingAfter
-        paragraphStyle.lineSpacing = 1
-        paragraphStyle.alignment = .left
-
-        line.addAttribute(.paragraphStyle, value: paragraphStyle, range: NSRange(location: 0, length: line.length))
-        line.append(NSAttributedString(string: "\n"))
-        result.append(line)
+        return result
     }
 }

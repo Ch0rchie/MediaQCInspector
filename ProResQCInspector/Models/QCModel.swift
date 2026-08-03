@@ -38,6 +38,7 @@ final class QCModel: ObservableObject {
 
     private var pendingQueueAction: PendingQueueAction?
     private var currentAnalysisFileID: MediaFile.ID?
+    private var analysisResultsByFileID: [MediaFile.ID: QCEngineResult] = [:]
 
     private static let analysisDateFormatter: DateFormatter = {
         let formatter = DateFormatter()
@@ -73,7 +74,13 @@ final class QCModel: ObservableObject {
     }
 
     var selectedReportText: String {
-        selectedFile?.report ?? ""
+        guard let file = selectedFile else { return "" }
+
+        if let engineResult = analysisResultsByFileID[file.id] {
+            return reportFormatter.report(for: file, engineResult: engineResult)
+        }
+
+        return file.report
     }
 
     var selectedReportTitle: String {
@@ -82,6 +89,11 @@ final class QCModel: ObservableObject {
 
     var selectedReportAttributedText: AttributedString {
         guard let file = selectedFile else { return AttributedString() }
+
+        if let engineResult = analysisResultsByFileID[file.id] {
+            return AttributedString(reportFormatter.attributedReport(for: file, engineResult: engineResult))
+        }
+
         return AttributedString(reportFormatter.attributedReport(for: file))
     }
 
@@ -242,6 +254,8 @@ final class QCModel: ObservableObject {
                     await MainActor.run { [weak self] in
                         guard let self, let index = self.fileIndex(for: fileID) else { return }
 
+                        self.analysisResultsByFileID[fileID] = engineResult
+
                         self.files[index].status = MediaFile.AnalysisStatus.generatingReport.rawValue
                         self.statusText = "Generating Report..."
 
@@ -252,7 +266,7 @@ final class QCModel: ObservableObject {
                         self.files[index].analyzedAt = Date()
 
                         let updated = self.files[index]
-                        self.files[index].report = self.reportFormatter.report(for: updated)
+                        self.files[index].report = self.reportFormatter.report(for: updated, engineResult: engineResult)
 
                         self.progress = Double(filePosition + 1) / Double(totalFiles)
                         self.currentAnalysisFileID = nil
@@ -386,7 +400,7 @@ final class QCModel: ObservableObject {
         guard panel.runModal() == .OK, let url = panel.url else { return }
 
         do {
-            try writeReportPDF(to: url, for: file)
+            try writeReportPDF(to: url, for: file, engineResult: analysisResultsByFileID[file.id])
         } catch {
             NSSound.beep()
             print("Failed to export report PDF:", error)
@@ -440,6 +454,7 @@ final class QCModel: ObservableObject {
         guard let selectedFileID else { return }
         guard let index = files.firstIndex(where: { $0.id == selectedFileID }) else { return }
 
+        analysisResultsByFileID[selectedFileID] = nil
         files.remove(at: index)
 
         if files.isEmpty {
@@ -454,6 +469,7 @@ final class QCModel: ObservableObject {
 
     private func clearImmediately() {
         files.removeAll()
+        analysisResultsByFileID.removeAll()
         selectedFileID = nil
         progress = 0
         statusText = "Ready to Analyze"
@@ -498,10 +514,11 @@ final class QCModel: ObservableObject {
         guard let index = fileIndex(for: fileID) else { return }
         files[index].status = MediaFile.AnalysisStatus.readyToAnalyze.rawValue
         files[index].result = MediaFile.AnalysisResult.notYetAnalyzed.rawValue
+        analysisResultsByFileID[fileID] = nil
     }
 
     private func startElapsedTimer() {
-        elapsedTimerTask?.cancel()
+        stopElapsedTimer()
 
         elapsedTimerTask = Task.detached(priority: .utility) { [weak self] in
             while !Task.isCancelled {
@@ -553,8 +570,8 @@ final class QCModel: ObservableObject {
         return TimeWindow(start: start, end: end)
     }
 
-    private func writeReportPDF(to url: URL, for file: MediaFile) throws {
-        let attributedReport = reportFormatter.attributedReport(for: file)
+    private func writeReportPDF(to url: URL, for file: MediaFile, engineResult: QCEngineResult? = nil) throws {
+        let attributedReport = reportFormatter.attributedReport(for: file, engineResult: engineResult)
         let framesetter = CTFramesetterCreateWithAttributedString(attributedReport as CFAttributedString)
 
         let pageRect = CGRect(x: 0, y: 0, width: 612, height: 792)

@@ -189,6 +189,63 @@ final class FFmpegScanner: @unchecked Sendable {
         file: URL,
         progress: @escaping @Sendable (Double) -> Void
     ) async -> [TimeWindow] {
+        return await detectWindows(
+            file: file,
+            filter: "freezedetect=n=-60dB:d=1.0",
+            startKey: "freeze_start",
+            endKey: "freeze_end",
+            progress: progress,
+            normalize: { [self] window in
+                self.normalizeTimeWindow(window)
+            }
+        )
+    }
+
+    func detectBlackFrames(
+        file: URL,
+        progress: @escaping @Sendable (Double) -> Void
+    ) async -> [TimeWindow] {
+        return await detectWindows(
+            file: file,
+            filter: "blackdetect=d=0.1:pix_th=0.10",
+            startKey: "black_start",
+            endKey: "black_end",
+            progress: progress,
+            normalize: { [self] window in
+                self.normalizeTimeWindow(window)
+            }
+        )
+    }
+
+    func editorialReviewWindow(for primaryWindow: TimeWindow, durationSeconds: Double) -> TimeWindow {
+        let start = max(0, primaryWindow.start - 1.0)
+        let end = min(durationSeconds, primaryWindow.end + 0.5)
+        return TimeWindow(start: start, end: end)
+    }
+
+    func formatTimecode(_ seconds: Double) -> String {
+        let totalTenths = Int((seconds * 10).rounded())
+        let hours = totalTenths / 36_000
+        let minutes = (totalTenths % 36_000) / 600
+        let remainingTenths = totalTenths % 600
+        let wholeSeconds = remainingTenths / 10
+        let tenths = remainingTenths % 10
+
+        return String(format: "%02d:%02d:%02d.%d", hours, minutes, wholeSeconds, tenths)
+    }
+
+    func formatWindow(_ window: TimeWindow) -> String {
+        "\(formatTimecode(window.start))–\(formatTimecode(window.end))"
+    }
+
+    private func detectWindows(
+        file: URL,
+        filter: String,
+        startKey: String,
+        endKey: String,
+        progress: @escaping @Sendable (Double) -> Void,
+        normalize: @escaping (TimeWindow) -> TimeWindow
+    ) async -> [TimeWindow] {
         let didStartAccessing = file.startAccessingSecurityScopedResource()
         defer {
             if didStartAccessing {
@@ -211,7 +268,7 @@ final class FFmpegScanner: @unchecked Sendable {
             "-nostats",
             "-v", "info",
             "-i", file.path,
-            "-vf", "freezedetect=n=-60dB:d=1.0",
+            "-vf", filter,
             "-an",
             "-f", "null",
             "-"
@@ -221,30 +278,11 @@ final class FFmpegScanner: @unchecked Sendable {
             return []
         }
 
-        let windows = parseFreezeDetectWindows(from: output, durationSeconds: duration)
+        let windows = parseDetectWindows(from: output, durationSeconds: duration, startKey: startKey, endKey: endKey)
+            .map { normalize($0) }
+
         progress(1)
         return mergeWindows(windows)
-    }
-
-    func editorialReviewWindow(for primaryWindow: TimeWindow, durationSeconds: Double) -> TimeWindow {
-        let start = max(0, primaryWindow.start - 1.0)
-        let end = min(durationSeconds, primaryWindow.end + 0.5)
-        return TimeWindow(start: start, end: end)
-    }
-
-    func formatTimecode(_ seconds: Double) -> String {
-        let totalTenths = Int((seconds * 10).rounded())
-        let hours = totalTenths / 36_000
-        let minutes = (totalTenths % 36_000) / 600
-        let remainingTenths = totalTenths % 600
-        let wholeSeconds = remainingTenths / 10
-        let tenths = remainingTenths % 10
-
-        return String(format: "%02d:%02d:%02d.%d", hours, minutes, wholeSeconds, tenths)
-    }
-
-    func formatWindow(_ window: TimeWindow) -> String {
-        "\(formatTimecode(window.start))–\(formatTimecode(window.end))"
     }
 
     private func scanRangeWithSeek(
@@ -319,6 +357,12 @@ final class FFmpegScanner: @unchecked Sendable {
         let safeStart = max(0, start)
         let safeEnd = max(safeStart + 0.5, end)
 
+        return TimeWindow(start: safeStart, end: safeEnd)
+    }
+
+    private func normalizeTimeWindow(_ window: TimeWindow) -> TimeWindow {
+        let safeStart = max(0, window.start)
+        let safeEnd = max(safeStart, window.end)
         return TimeWindow(start: safeStart, end: safeEnd)
     }
 
@@ -480,49 +524,33 @@ final class FFmpegScanner: @unchecked Sendable {
             .count
     }
 
-    private func parseFreezeDetectWindows(from output: String, durationSeconds: Double) -> [TimeWindow] {
+    private func parseDetectWindows(from output: String, durationSeconds: Double, startKey: String, endKey: String) -> [TimeWindow] {
         var windows: [TimeWindow] = []
         var currentStart: Double?
 
         for rawLine in output.split(whereSeparator: \.isNewline) {
             let line = String(rawLine)
 
-            if let start = Self.freezeValue(in: line, key: "freeze_start") {
+            if let start = Self.detectValue(in: line, key: startKey) {
                 currentStart = start
             }
 
-            if let end = Self.freezeValue(in: line, key: "freeze_end") {
+            if let end = Self.detectValue(in: line, key: endKey) {
                 if let start = currentStart {
-                    windows.append(
-                        normalizeFreezeWindow(
-                            TimeWindow(start: start, end: end),
-                            durationSeconds: durationSeconds
-                        )
-                    )
+                    windows.append(TimeWindow(start: start, end: end))
                 }
                 currentStart = nil
             }
         }
 
         if let start = currentStart {
-            windows.append(
-                normalizeFreezeWindow(
-                    TimeWindow(start: start, end: durationSeconds),
-                    durationSeconds: durationSeconds
-                )
-            )
+            windows.append(TimeWindow(start: start, end: durationSeconds))
         }
 
-        return mergeWindows(windows)
+        return windows
     }
 
-    private func normalizeFreezeWindow(_ window: TimeWindow, durationSeconds: Double) -> TimeWindow {
-        let safeStart = max(0, min(window.start, durationSeconds))
-        let safeEnd = max(safeStart, min(window.end, durationSeconds))
-        return TimeWindow(start: safeStart, end: safeEnd)
-    }
-
-    private static func freezeValue(in line: String, key: String) -> Double? {
+    private static func detectValue(in line: String, key: String) -> Double? {
         let pattern = "\(key):\\s*([0-9]+(?:\\.[0-9]+)?)"
         guard
             let regex = try? NSRegularExpression(pattern: pattern),

@@ -65,7 +65,8 @@ struct QCEngine: Sendable {
         self.modules = modules ?? [
             DecodeValidationModule(scanner: scanner),
             MetadataValidationModule(),
-            FreezeFrameModule(scanner: scanner)
+            FreezeFrameModule(scanner: scanner),
+            BlackFrameModule(scanner: scanner)
         ]
     }
 

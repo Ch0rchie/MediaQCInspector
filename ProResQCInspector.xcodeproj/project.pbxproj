@@ -24,6 +24,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		74AE894130214E64006A9DA8 /* ReportSpecification.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ReportSpecification.md; sourceTree = "<group>"; };
 		74C17AEA3017EAF600B7C4E1 /* ProResQCInspector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ProResQCInspector.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		74C17AFB3017EAF700B7C4E1 /* ProResQCInspectorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProResQCInspectorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		74C17B053017EAF700B7C4E1 /* ProResQCInspectorUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ProResQCInspectorUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -31,6 +32,17 @@
 		74E4A67030198DEE0000BC57 /* CHANGELOG.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = CHANGELOG.md; sourceTree = "<group>"; };
 		74E4A6A9301A8CD80000BC57 /* DESIGN.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = DESIGN.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		74AE894630214FCF006A9DA8 /* Exceptions for "ProResQCInspector" folder in "ProResQCInspector" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				ProResQCInspector/Scripts/build_ffmpeg.sh,
+				ProResQCInspector/Scripts/install_app.sh,
+			);
+			target = 74C17AE93017EAF600B7C4E1 /* ProResQCInspector */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		743C22C7301BE60C00AC0526 /* ThirdParty */ = {
@@ -40,6 +52,9 @@
 		};
 		74C17AEC3017EAF600B7C4E1 /* ProResQCInspector */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				74AE894630214FCF006A9DA8 /* Exceptions for "ProResQCInspector" folder in "ProResQCInspector" target */,
+			);
 			path = ProResQCInspector;
 			sourceTree = "<group>";
 		};
@@ -52,11 +67,6 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = ProResQCInspectorUITests;
 			sourceTree = "<group>";
-		};
-		74CCB4A3301C3CFC00639C9E /* Scripts */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Scripts;
-			sourceTree = SOURCE_ROOT;
 		};
 		74F42C0E3019427D0098CB19 /* Design */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -90,19 +100,27 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		74C17AE13017EAF600B7C4E1 = {
+		74AE89473021502D006A9DA8 /* Docs */ = {
 			isa = PBXGroup;
 			children = (
+				74AE894130214E64006A9DA8 /* ReportSpecification.md */,
 				74E4A6A9301A8CD80000BC57 /* DESIGN.md */,
 				74E4A67030198DEE0000BC57 /* CHANGELOG.md */,
 				74E4A66E30198D400000BC57 /* README.md */,
 				74F42C0E3019427D0098CB19 /* Design */,
+			);
+			path = Docs;
+			sourceTree = "<group>";
+		};
+		74C17AE13017EAF600B7C4E1 = {
+			isa = PBXGroup;
+			children = (
+				74AE89473021502D006A9DA8 /* Docs */,
+				74C17AEB3017EAF600B7C4E1 /* Products */,
 				74C17AEC3017EAF600B7C4E1 /* ProResQCInspector */,
 				74C17AFE3017EAF700B7C4E1 /* ProResQCInspectorTests */,
 				74C17B083017EAF700B7C4E1 /* ProResQCInspectorUITests */,
-				74C17AEB3017EAF600B7C4E1 /* Products */,
 				743C22C7301BE60C00AC0526 /* ThirdParty */,
-				74CCB4A3301C3CFC00639C9E /* Scripts */,
 			);
 			sourceTree = "<group>";
 		};
@@ -421,8 +439,7 @@
 				CODE_SIGN_ENTITLEMENTS = ProResQCInspector/ProResQCInspector.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"ProResQCInspector/Preview Content\"";
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -448,8 +465,7 @@
 				CODE_SIGN_ENTITLEMENTS = ProResQCInspector/ProResQCInspector.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_ASSET_PATHS = "\"ProResQCInspector/Preview Content\"";
+				CURRENT_PROJECT_VERSION = 2;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
